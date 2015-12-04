@@ -57,7 +57,7 @@ namespace SeriesLyOffline2
             get { return Configuracion.chekedPorDefecto; }
             set { Configuracion.chekedPorDefecto = value; }
         }
-        private void PreguntarParaQuitar(object objSelected, Gabriel.Cat.Utilitats.Wpf.ItemArgs arg)
+        private void PreguntarParaQuitar(object objSelected, Gabriel.Cat.Wpf.ItemArgs arg)
         {
             DiscoLogico disco = objSelected as DiscoLogico;
             new ConfiguradorDiscoLogico(disco).Show();
@@ -126,7 +126,7 @@ namespace SeriesLyOffline2
             //decir que estan haciendo en el detalle de los dicos logicos
         }
 
-        private void clstRutasHaEvitar_ItemSelected_1(object objSelected, Gabriel.Cat.Utilitats.Wpf.ItemArgs arg)
+        private void clstRutasHaEvitar_ItemSelected_1(object objSelected, Gabriel.Cat.Wpf.ItemArgs arg)
         {
             //pregunto si quiero quitar la ruta bloqueada de la lista :D
         }

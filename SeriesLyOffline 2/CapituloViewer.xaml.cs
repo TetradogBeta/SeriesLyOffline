@@ -1,4 +1,5 @@
-﻿using Gabriel.Cat.Utilitats.Wpf;
+﻿using Gabriel.Cat.Extension;
+using Gabriel.Cat.Wpf;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
 namespace SeriesLyOffline2
 {
     /// <summary>
@@ -24,6 +24,7 @@ namespace SeriesLyOffline2
         Capitulo capitulo;
         public CapituloViewer()
         {
+           
             //Hacer que se redimensione bien :D solo modifica la longitud de la etiqueta hay un tamaño minimo
             InitializeComponent();
             imgVisto.SetImage(Imagenes.NoVisto);

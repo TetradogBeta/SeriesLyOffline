@@ -12,8 +12,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Gabriel.Cat.Utilitats.Wpf;
-using Gabriel.Cat.Utilitats;
+using Gabriel.Cat.Wpf;
+using Gabriel.Cat.Extension;
 using Gabriel.Cat;
 
 namespace SeriesLyOffline2

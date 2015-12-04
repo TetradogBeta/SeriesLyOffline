@@ -1,7 +1,7 @@
 ﻿<Window xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=Gabriel.Cat.Utilitats.Wpf" 
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:Wpf="clr-namespace:Gabriel.Cat.Utilitats.Wpf;assembly=Gabriel.Cat.Utilitats.Wpf" xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" x:Class="SeriesLyOffline2.Configuracion"
+        xmlns:Wpf="clr-namespace:Gabriel.Cat.Wpf;assembly=Gabriel.Cat.Wpf" xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" x:Class="SeriesLyOffline2.Configuracion"
         Title="Configuracion" Height="282" Width="570" ResizeMode="NoResize">
     <Grid>
         <CheckBox x:Name="ckBuscarUnidades" Content="Comprobar unidades logicas" HorizontalAlignment="Left" Margin="19,9,0,0" VerticalAlignment="Top"/>
