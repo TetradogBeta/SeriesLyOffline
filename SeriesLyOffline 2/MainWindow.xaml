@@ -1,0 +1,36 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SeriesLyOffline_2"
+        xmlns:Wpf="clr-namespace:Gabriel.Cat.Utilitats.Wpf;assembly=Gabriel.Cat.Utilitats.Wpf" xmlns:SeriesLyOffline2="clr-namespace:SeriesLyOffline2" xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=Gabriel.Cat.Utilitats.Wpf" x:Class="SeriesLyOffline_2.MainWindow"
+        mc:Ignorable="d"
+        Title="SeriesLy Offline" Height="281.578" Width="507.895">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="4*"/>
+            <ColumnDefinition Width="145*"/>
+            <ColumnDefinition Width="10*"/>
+            <ColumnDefinition Width="336*"/>
+            <ColumnDefinition Width="5*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="5*"/>
+            <RowDefinition MinHeight="241" Height="241*"/>
+            <RowDefinition Height="5*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Column="1" Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="69*"/>
+                <RowDefinition Height="172*"/>
+            </Grid.RowDefinitions>
+            <Image x:Name="imagen" Grid.Row="0" MouseLeftButtonUp="imagen_MouseLeftButtonUp_1"/>
+
+            <Wpf:ColorListBox x:Name="clstSeries" Grid.Row="1"/>
+
+        </Grid>
+        <SeriesLyOffline2:SeriesViewer Grid.Row="1" x:Name="serieViewer"  Grid.Column="3" />
+    </Grid>
+</Window>

@@ -1,0 +1,27 @@
+﻿<UserControl x:Name="capituloViewer" x:Class="SeriesLyOffline2.CapituloViewer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SeriesLyOffline2"
+             mc:Ignorable="d" Height="57.519" Width="518.797" FontSize="30" ContentStringFormat="">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition MinWidth="60"/>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition Width="62"/>
+            <ColumnDefinition Width="10"/>
+            <ColumnDefinition Width="59"/>
+            <ColumnDefinition Width="10"/>
+        </Grid.ColumnDefinitions>
+        <Viewbox x:Name="vBTxtNombreSerie" Grid.Row="0" Grid.Column="1">
+            <TextBlock  x:Name="txtNombreSerie" MouseLeftButtonUp="imgVisto_MouseLeftButtonUp"/>
+        </Viewbox>
+        <Image Grid.Row="0" Grid.Column="3" x:Name="imgVisto"  MouseLeftButtonUp="imgVisto_MouseLeftButtonUp"/>
+        <Image Grid.Row="0" Grid.Column="5" x:Name="imgPlay"   MouseLeftButtonUp="imgPlay_MouseLeftButtonUp"/>
+    </Grid>
+</UserControl>

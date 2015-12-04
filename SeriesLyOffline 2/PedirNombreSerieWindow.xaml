@@ -1,0 +1,19 @@
+﻿<Window x:Class="SeriesLyOffline2.PedirNombreSerieWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SeriesLyOffline2"
+        mc:Ignorable="d"
+        Title="MixSeries" Height="154.617" Width="308" WindowStyle="ToolWindow" WindowStartupLocation="Manual" Closing="Window_Closing_1">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="41*"/>
+            <ColumnDefinition Width="32*"/>
+        </Grid.ColumnDefinitions>
+        <Label Content="Nombre" HorizontalAlignment="Left" Margin="20,16,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.263,-0.231" Width="84"/>
+        <TextBox x:Name="txtNombre" HorizontalAlignment="Left" Height="23" Margin="20,52,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="262" Grid.ColumnSpan="2"/>
+        <Button Content="Crea" HorizontalAlignment="Left" Height="25" Margin="39,87,0,0" VerticalAlignment="Top" Width="79" Click="Button_Click_1" Grid.Column="1"/>
+
+    </Grid>
+</Window>
