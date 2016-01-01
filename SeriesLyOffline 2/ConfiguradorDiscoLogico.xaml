@@ -4,9 +4,9 @@
         xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" x:Class="SeriesLyOffline2.ConfiguradorDiscoLogico"
         Title="Configurador DiscoLogico" Height="191" Width="464" ResizeMode="NoResize" >
     <Grid >
-        <TextBox x:Name="txtRutaSeleccionada" IsReadOnly="True" HorizontalAlignment="Left" Height="28" Margin="28,27,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="259"/>
-        <TextBlock HorizontalAlignment="Left" Margin="28,10,0,0" TextWrapping="Wrap" Text="Ruta nueva a vigilar" VerticalAlignment="Top"/>
-        <Button Content="" HorizontalAlignment="Left" Margin="10,27,0,0" VerticalAlignment="Top" Width="13" RenderTransformOrigin="-0.182,-0.182" Click="Button_Click_1"/>
+        <TextBox x:Name="txtRutaSeleccionada" IsReadOnly="True" HorizontalAlignment="Left" Height="28" Margin="28,27,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="259" IsEnabled="False"/>
+        <TextBlock HorizontalAlignment="Left" Margin="28,10,0,0" TextWrapping="Wrap" Text="Ruta nueva a vigilar" VerticalAlignment="Top" IsEnabled="False"/>
+        <Button Content="" HorizontalAlignment="Left" Margin="10,27,0,0" VerticalAlignment="Top" Width="13" RenderTransformOrigin="-0.182,-0.182" Click="Button_Click_1" IsEnabled="False"/>
 
         <Custom:ProgressRing x:Name="pgrTrabajando" HorizontalAlignment="Left" Margin="335,10,0,0" VerticalAlignment="Top" Height="89" Width="102" Foreground="Aquamarine" RenderTransformOrigin="0.151,0.439" MouseLeftButtonUp="pgrTrabajando_LeftUpClick_1"/>
         <ComboBox x:Name="cmbModoEscaneo" HorizontalAlignment="Left" Margin="28,77,0,0" VerticalAlignment="Top" Width="112"/>

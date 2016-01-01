@@ -49,7 +49,7 @@ namespace SeriesLyOffline2
         private void IniciaBusquedaUnidades(object sender, RoutedEventArgs e)
         {
             DiscoLogico.ModoEscaneoEnBuscaDeUnidadesActivas = DiscoLogico.ModoEscaneo.Continuo;
-            pgrTrabajando.Visible();
+            pgrTrabajando.Show();
             chekedPorDefecto = true;
         }
         public static bool BuscarUnidades

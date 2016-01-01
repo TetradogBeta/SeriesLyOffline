@@ -99,8 +99,11 @@ namespace SeriesLyOffline_2
                 Action act = () =>
                 {
                     Serie serieAPoner = CargaCarpeta(new DirectoryInfo(dir.Path));
-                    series.Afegir(dir.Path, serieAPoner);
-                    clstSeries.Add(serieAPoner, DameColor(serieAPoner));
+                    if (serieAPoner!=null)
+                    {
+                        series.Afegir(dir.Path, serieAPoner);
+                        clstSeries.Add(serieAPoner, DameColor(serieAPoner));
+                    }
                 };
                 Dispatcher.BeginInvoke(act);
             }
