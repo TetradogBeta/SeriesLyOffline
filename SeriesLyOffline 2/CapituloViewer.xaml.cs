@@ -58,7 +58,7 @@ namespace SeriesLyOffline2
             set { capitulo = value;
                 Visto = capitulo.Visto;
                 txtNombreSerie.Text = capitulo.Nombre;
-
+                imgCapitulo.SetImage(capitulo.ArchivoMultimedia.Miniatura());
             }
         }
 
