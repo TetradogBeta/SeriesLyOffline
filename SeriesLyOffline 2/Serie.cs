@@ -29,7 +29,6 @@ namespace SeriesLyOffline2
         protected DirectoryInfo dirPadre;
         string idMix;
         bool serieCargada;
-        string pathly;
         static Serie()
         {
             capitulosVistosGuardados = new LlistaOrdenada<string, string>();
@@ -53,15 +52,14 @@ namespace SeriesLyOffline2
         public Serie(DirectoryInfo directorio, bool comprovar)
             : this()
         {
-            if (!directorio.CanWrite())
-                throw new Exception("El directorio no se puede escribir!!");
+            if (!directorio.CanRead())
+                throw new Exception("El directorio no se puede leer!!");
 
             if (comprovar)
                 if (!UsarSoloCarpetasMultimedia(directorio))
                     throw new Exception("La carpeta no tiene ningun archivo multimedia");
 
             dirPadre = directorio;
-            pathly = dirPadre.FullName + Path.DirectorySeparatorChar + "capitulosVistosGuardados.ly";
         }
         public Serie(XmlNode nodoXml, string pathDir)
             : this(new DirectoryInfo(pathDir))
@@ -228,14 +226,10 @@ namespace SeriesLyOffline2
         public static FileInfo[] ArchivosMultimedia(DirectoryInfo dir)
         {
             FileInfo[] files = { };
-            //     LlistaOrdenada<string, string> diccionarioMultimedia = new LlistaOrdenada<string, string>(Serie.diccionarioMultimedia);
             try
             {
-                if (dir.CanWrite())//me interesa poder escribir
-                    files = dir.GetFiles().Filtra((file) =>
-                    {
-                        return diccionarioMultimedia.Existeix(file.Extension);
-                    }).ToTaula();
+                if (dir.CanRead())//me interesa poder leer
+                    files = dir.GetFiles(extensionesMultimedia);
             }
             catch (Exception ex)
             {
@@ -247,15 +241,7 @@ namespace SeriesLyOffline2
 
         public static bool UsarSoloCarpetasMultimedia(DirectoryInfo dir)
         {
-            bool hayMultimedia = false;
-            dir.GetFiles().WhileEach((file) =>
-            {
-                if (Serie.extensionesMultimedia.Existe(file.Extension))
-                    hayMultimedia = true;
-                return !hayMultimedia;
-
-            });
-            return hayMultimedia;
+            return dir.GetFiles(extensionesMultimedia).Length > 0;
         }
         public static XmlNode ToXml(IEnumerable<Serie> series)
         {
@@ -328,23 +314,26 @@ namespace SeriesLyOffline2
         public static Serie[] DameSeries(XmlNode nodoSeriesLyXml)
         {
             Llista<Serie> series = new Llista<Serie>();
+            XmlNode nodosCapitulosVistos = nodoSeriesLyXml.ChildNodes[0];
+            XmlNode nodosSeries = nodoSeriesLyXml.ChildNodes[1];
+            XmlNode nodoSerie;
             Serie serieActual;
-            for (int i = 0; i < nodoSeriesLyXml.ChildNodes[0].ChildNodes.Count; i++)//cargo los capitulos vistos :D
-                Serie.capitulosVistosGuardados.AfegirORemplaçar(nodoSeriesLyXml.ChildNodes[0].ChildNodes[i].InnerText, nodoSeriesLyXml.ChildNodes[0].ChildNodes[i].InnerText);
-            for (int i = 0; i < nodoSeriesLyXml.ChildNodes[1].ChildNodes.Count; i++)
+            for (int i = 0; i < nodosCapitulosVistos.ChildNodes.Count; i++)//cargo los capitulos vistos :D
+                Serie.capitulosVistosGuardados.AfegirORemplaçar(nodosCapitulosVistos.ChildNodes[i].InnerText, nodosCapitulosVistos.ChildNodes[i].InnerText);
+            for (int i = 0; i < nodosSeries.ChildNodes.Count; i++)
             {
                 try
                 {
+                    nodoSerie = nodosSeries.ChildNodes[i];
 
-
-                    if (nodoSeriesLyXml.ChildNodes[1].ChildNodes[i].Name == "Serie")
+                    if (nodoSerie.Name == "Serie")
                     {
 
-                        serieActual = new Serie(nodoSeriesLyXml.ChildNodes[1].ChildNodes[i], ParsePath(nodoSeriesLyXml.ChildNodes[1].ChildNodes[i].FirstChild.InnerText,caracteresXmlSustitutos));/* desescapar caracteres no soportados en el xml por los originales*/
+                        serieActual = new Serie(nodoSerie, ParsePath(nodoSerie.FirstChild.InnerText,caracteresXmlSustitutos));/* desescapar caracteres no soportados en el xml por los originales*/
                     }
                     else
                     {
-                        serieActual = new SerieConvinada(nodoSeriesLyXml.ChildNodes[1].ChildNodes[i]);/*desescapar caracteres no soportados en el xml por los originales*/
+                        serieActual = new SerieConvinada(nodoSerie);/*desescapar caracteres no soportados en el xml por los originales*/
                     }
                     series.Afegir(serieActual);
                     if (SerieNuevaCargada != null)
@@ -394,7 +383,9 @@ namespace SeriesLyOffline2
         public SerieConvinada(XmlNode serieXml)
             : this()
         {
-            IdMix = serieXml.FirstChild.InnerText;
+            string[] camposId = serieXml.FirstChild.InnerText.Split(';');
+            IdMix = camposId[2];
+            Nombre = camposId[1];
             for (int i = 1; i < serieXml.ChildNodes.Count; i++)
             {
                 Añadir(new Serie(serieXml.ChildNodes[i], ParsePath(serieXml.ChildNodes[i].FirstChild.InnerText,caracteresXmlSustitutos)));

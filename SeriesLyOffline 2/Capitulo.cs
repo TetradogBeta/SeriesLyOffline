@@ -5,6 +5,7 @@ using Gabriel.Cat.Extension;
 using System.Diagnostics;
 using System.Drawing;
 using System.Threading;
+using System.Collections.Generic;
 
 namespace SeriesLyOffline2
 {
@@ -71,7 +72,39 @@ namespace SeriesLyOffline2
 
         }
         public  string Nombre
-        { get { return ArchivoMultimedia.Name.Split('.')[0]; } }
+        {
+            get {
+                string nombrePorLimpiar= ArchivoMultimedia.Name.Split('.')[0];//ahora tengo el nombre sin extension
+                text nombreLimpio;
+                //ahora quito los '[' que no tienen numeros ']' y los '(' ')'
+                Llista<KeyValuePair<int, int>> partesAQuitar = new Llista<KeyValuePair<int, int>>();
+                int inicio=0;
+                bool añadir;
+                for (int i = 0; i < nombrePorLimpiar.Length; i++)
+                    if (nombrePorLimpiar[i] == '[' || nombrePorLimpiar[i] == '(')
+                    {
+                        inicio = i;
+                    }
+                    else if (nombrePorLimpiar[i] == ']' || nombrePorLimpiar[i] == ')')
+                    {
+                        añadir = false;
+                        for (int j=inicio;j< i&&!añadir;j++)
+                        {
+                            //si no contiene numeros,  y/o Guiones se añade
+                            añadir = (nombrePorLimpiar[j] <= '0' || nombrePorLimpiar[j] > '9') && nombrePorLimpiar[j] != '-';
+                        }
+                        if (añadir)
+                        {
+                            partesAQuitar.Afegir(new KeyValuePair<int, int>(inicio, i- inicio));
+                        }
+                    }
+                nombreLimpio = nombrePorLimpiar;
+                for (int i = 0; i < partesAQuitar.Count; i++)
+                    nombreLimpio.Remove(partesAQuitar[i].Key, partesAQuitar[i].Value);
+                return nombrePorLimpiar;
+
+            }
+        }
 
         public string LineaGuardado { 
             get { return Key; }

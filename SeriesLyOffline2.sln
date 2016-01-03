@@ -1,7 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SeriesLyOffline 2", "SeriesLyOffline 2\SeriesLyOffline 2.csproj", "{04C70AEC-E515-4F69-93DB-C3CE00EB140B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gabriel.Cat.Utilitats", "..\Gabriel.Cat.Utilitats\Gabriel.Cat.Utilitats.csproj", "{D60D408F-9802-4562-82A1-528BA7202B44}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,6 +17,10 @@ Global
 		{04C70AEC-E515-4F69-93DB-C3CE00EB140B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{04C70AEC-E515-4F69-93DB-C3CE00EB140B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{04C70AEC-E515-4F69-93DB-C3CE00EB140B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D60D408F-9802-4562-82A1-528BA7202B44}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D60D408F-9802-4562-82A1-528BA7202B44}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D60D408F-9802-4562-82A1-528BA7202B44}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D60D408F-9802-4562-82A1-528BA7202B44}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

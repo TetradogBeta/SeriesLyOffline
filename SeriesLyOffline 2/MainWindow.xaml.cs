@@ -27,29 +27,37 @@ namespace SeriesLyOffline_2
         readonly string PATHDATOSLY = Environment.CurrentDirectory + System.IO.Path.DirectorySeparatorChar + "datos.ly";
         public MainWindow()
         {
-            series = new LlistaOrdenada<IComparable, Serie>();
-            InitializeComponent();
-            clstSeries.Sorted = true;
-            imagen.SetImage(Imagenes.mainlogo2);
-            clstSeries.Tipo = ColorListBox.TipoSeleccion.One;
-            //pongo a buscar unidades nuevas y quitadas y actualizadas :D
-            DiscoLogico.VelocidadPorDefecto = DiscoLogico.VelocidadEscaneo.Normal;
-            DiscoLogico.MetodoParaFiltrarPorDefecto = Serie.ArchivosMultimedia;
-            DiscoLogico.ConservarDiscosPerdidos = true;
-            DiscoLogico.VerMensajesDebugger = false;
-            DiscoLogico.UsarObjetosIOPorDefecto = false;
+            if (new DirectoryInfo(Path.GetDirectoryName(PATHDATOSLY)).CanWrite() || MessageBox.Show("No se puede escribir en el directorio, eso puede imperdir guardar y/o actualizar la base de datos, Si quieres puedes usarlo sabiendo que se puede perder el trabajo hecho", "Problema con los permisos de escritura", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes)
+            {
+                series = new LlistaOrdenada<IComparable, Serie>();
+                InitializeComponent();
+                clstSeries.Sorted = true;
+                imagen.SetImage(Imagenes.mainlogo2);
+                clstSeries.Tipo = ColorListBox.TipoSeleccion.One;
+                //pongo a buscar unidades nuevas y quitadas y actualizadas :D
+                DiscoLogico.VelocidadPorDefecto = DiscoLogico.VelocidadEscaneo.Normal;
+                DiscoLogico.MetodoParaFiltrarPorDefecto = Serie.ArchivosMultimedia;
+                DiscoLogico.ConservarDiscosPerdidos = true;
+                DiscoLogico.VerMensajesDebugger = false;
+                DiscoLogico.UsarObjetosIOPorDefecto = true; //uso objetos io??
 
-            DiscoLogico.CarpetaVigilada += PonDirectorioSiNoEsta;
-            DiscoLogico.CarpetaNoVigilada += QuitaDirectorioSiEsta;
-            DiscoLogico.DirectorioPerdido += QuitaDirectorioSiEsta;
-            DiscoLogico.CarpetaBloqueada += QuitaDirectorioSiEsta;
-            //uso objetos io??
-            Serie.SerieNuevaCargada += PonSerieCargada;//asi puede ir mas rapido :D al ir en paralelo :D
-            clstSeries.ItemSelected += VisualizarSerie;
-            Closing += GuardaSeries;
-            //si seleccionan mas de uno (dándole a control sino hace click normal!)  ofrece para unirlas todas y poder ponerle un nombre cuando pulsa M (despues de seleccionarlas)
-            Keyboard.AddKeyDownHandler(this, SiPulsaControl);
-            Load();
+                DiscoLogico.CarpetaVigilada += PonDirectorioSiNoEsta;
+                DiscoLogico.CarpetaNoVigilada += QuitaDirectorioSiEsta;
+                DiscoLogico.DirectorioPerdido += QuitaDirectorioSiEsta;
+                DiscoLogico.CarpetaBloqueada += QuitaDirectorioSiEsta;
+               
+                Serie.SerieNuevaCargada += PonSerieCargada;//asi puede ir mas rapido :D al ir en paralelo :D
+                clstSeries.ItemSelected += VisualizarSerie;
+                Closing += GuardaSeries;
+                //si seleccionan mas de uno (dándole a control sino hace click normal!)  ofrece para unirlas todas y poder ponerle un nombre cuando pulsa M (despues de seleccionarlas)
+                Keyboard.AddKeyDownHandler(this, SiPulsaControl);
+                Load();
+            }
+            else
+            {
+                //no puedo escribir y el usuario no quiere usarla asi que la cierro
+                this.Close();
+            }
         }
 
         private void Load()
@@ -268,29 +276,31 @@ namespace SeriesLyOffline_2
         {
 
             DiscoLogico.AcabaTodaActividad();
-            if (acabadoDeCargar && series.Count > 0)
+            if (new DirectoryInfo(Path.GetDirectoryName(PATHDATOSLY)).CanWrite())
             {
-                FileStream fs = new FileStream(PATHDATOSLY, FileMode.Create);
-                StreamWriter sw = new StreamWriter(fs, System.Text.Encoding.UTF8);
-                sw.WriteLine("<SeriesLyOffLine>");
-                sw.WriteLine(Configuracion.ToXml().OuterXml);
-                if (Debugger.IsAttached)
+                if (acabadoDeCargar)
                 {
-                    Console.WriteLine("inicio guardar series");
-                }
-                //si si aun no a cargado las series guardadas no las borra!!
+                    FileStream fs = new FileStream(PATHDATOSLY, FileMode.Create);
+                    StreamWriter sw = new StreamWriter(fs, System.Text.Encoding.UTF8);
+                    sw.WriteLine("<SeriesLyOffLine>");
+                    sw.WriteLine(Configuracion.ToXml().OuterXml);
+                    if (Debugger.IsAttached)
+                    {
+                        Console.WriteLine("inicio guardar series");
+                    }
+                    //si si aun no a cargado las series guardadas no las borra!!
 
 
-                sw.WriteLine(Serie.ToXml(series.ValuesToArray()).OuterXml);
-                if (Debugger.IsAttached)
-                {
-                    Console.WriteLine("fin guardar series");
+                    sw.WriteLine(Serie.ToXml(series.ValuesToArray()).OuterXml);
+                    if (Debugger.IsAttached)
+                    {
+                        Console.WriteLine("fin guardar series");
+                    }
+                    sw.WriteLine("</SeriesLyOffLine>");
+                    sw.Close();
+                    fs.Close();
                 }
-                sw.WriteLine("</SeriesLyOffLine>");
-                sw.Close();
-                fs.Close();
             }
-
 
         }
 

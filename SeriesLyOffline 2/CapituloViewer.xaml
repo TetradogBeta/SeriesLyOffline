@@ -10,7 +10,6 @@
             <RowDefinition/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="60" x:Name="imgGrid"/>
             <ColumnDefinition Width="10"/>
             <ColumnDefinition MinWidth="60"/>
             <ColumnDefinition Width="10"/>
@@ -19,8 +18,7 @@
             <ColumnDefinition Width="59"/>
             <ColumnDefinition Width="10"/>
         </Grid.ColumnDefinitions>
-        <Image x:Name="imgCapitulo"/>
-        <Viewbox x:Name="vBTxtNombreSerie" Grid.Row="1" Grid.Column="2" MaxHeight="100">
+        <Viewbox x:Name="vBTxtNombreSerie" Grid.Row="1" Grid.Column="1" MaxHeight="100" HorizontalAlignment="Left" MinHeight="50">
             <TextBlock  x:Name="txtNombreSerie" MouseLeftButtonUp="imgVisto_MouseLeftButtonUp" />
         </Viewbox>
         <Image Grid.Row="0" Grid.Column="3" x:Name="imgVisto"  MouseLeftButtonUp="imgVisto_MouseLeftButtonUp"/>

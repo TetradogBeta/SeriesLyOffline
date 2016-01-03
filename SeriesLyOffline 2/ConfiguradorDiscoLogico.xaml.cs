@@ -67,6 +67,20 @@ namespace SeriesLyOffline2
         private void CambiaModoEscaneo(object sender, SelectionChangedEventArgs e)
         {
             disco.ModoEscaneoBD = (DiscoLogico.ModoEscaneo)Enum.Parse(typeof(DiscoLogico.ModoEscaneo), cmbModoEscaneo.SelectedItem as string);
+            incrementoPorCiclo.IsEnabled = false;
+            intervalInicial.IsEnabled = false;
+            ciclosParaCambio.IsEnabled = false;
+            switch (disco.ModoEscaneoBD) {
+                case DiscoLogico.ModoEscaneo.CadaXTiempo:
+                    intervalInicial.IsEnabled = true; break;
+                case DiscoLogico.ModoEscaneo.CadaXTiempoIncrementandolo:
+                    intervalInicial.IsEnabled = true;
+                    incrementoPorCiclo.IsEnabled = true; break;
+                case DiscoLogico.ModoEscaneo.CadaXTiempoUnosXCiclosLuegoManual:
+                    incrementoPorCiclo.IsEnabled = true;
+                    intervalInicial.IsEnabled = true;
+                    ciclosParaCambio.IsEnabled = true; break;
+            }
         }
 
         private void PonColorEstado(DiscoLogico disco, DiscoLogico.EstadoEscaneo estado)
@@ -98,6 +112,7 @@ namespace SeriesLyOffline2
         private void pgrTrabajando_LeftUpClick_1(object sender, MouseButtonEventArgs e)
         {
             disco.EscanearAsync();
+            MessageBox.Show("Se ha puesto a escanear");
         }
     }
 }

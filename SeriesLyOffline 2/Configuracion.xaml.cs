@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -79,9 +80,13 @@ namespace SeriesLyOffline2
         }
         public static void LoadXml(XmlNode nodoConfiguracionDiscos)
         {
+            DiscoLogico[] discosCargados;
             DiscoLogico.LoadXml(nodoConfiguracionDiscos.LastChild, true);
             if (nodoConfiguracionDiscos.FirstChild.InnerText == true.ToString())
                 chekedPorDefecto = true;
+            discosCargados = DiscoLogico.Discos();
+            for (int i = 0; i < discosCargados.Length; i++)
+                discosCargados[i].MetodoParaFiltrar = Serie.ArchivosMultimedia;
         }
         public static XmlNode ToXml()
         {
@@ -101,15 +106,14 @@ namespace SeriesLyOffline2
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            string rutaHaVigilar = null;
             //añade la ruta seleccionada como disco logico
-
-
-            if (rutaHaVigilar != null)
+            FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
+            if (folderBrowser.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                DiscoLogico disco = new DiscoLogico(rutaHaVigilar);
-                DiscoLogico.AñadirDisco(disco);
-                clstDiscosLogicos.Add(disco);
+                    DiscoLogico disco = new DiscoLogico(folderBrowser.SelectedPath);
+                    DiscoLogico.AñadirDisco(disco);
+                    clstDiscosLogicos.Add(disco);
+
             }
         }
 

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:SeriesLyOffline_2"
         xmlns:Wpf="clr-namespace:Gabriel.Cat.Wpf;assembly=Gabriel.Cat.Wpf" xmlns:SeriesLyOffline2="clr-namespace:SeriesLyOffline2" xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls" xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro" x:Class="SeriesLyOffline_2.MainWindow"
         mc:Ignorable="d"
-        Title="SeriesLy Offline" Height="281.578" Width="507.895">
+        Title="SeriesLy Offline" Height="273.602" Width="520.658">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="4*"/>
