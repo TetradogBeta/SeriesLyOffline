@@ -339,16 +339,18 @@ namespace SeriesLyOffline2
                     if (SerieNuevaCargada != null)
                         SerieNuevaCargada(serieActual);
                 }
-                catch { }
+                catch (Exception m){
+
+                }
             }
             return series.ToTaula();
         }
 
         protected static string ParsePath(string pathXmlParse,string[] caracteresASustituir)
         {
-            string pathSerie = pathXmlParse;
+            text pathSerie = pathXmlParse;
             for (int j = 0; j < caracteresASustituir.Length; j++)
-                pathSerie = pathSerie.Replace(caracteresASustituir[j], caracteresReservadosXml[caracteresASustituir[j]]);
+                pathSerie.Replace(caracteresASustituir[j], caracteresReservadosXml[caracteresASustituir[j]]);
             return pathSerie;
         }
 
