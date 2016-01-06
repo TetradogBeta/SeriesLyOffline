@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -22,6 +23,7 @@ namespace SeriesLyOffline2
     {
         //el color cambia con lo que esta pasando en el disco
         DiscoLogico disco;
+        public event EventHandler CambioNombreDisco;
         public ConfiguradorDiscoLogico(DiscoLogico disco)
         {
             InitializeComponent();
@@ -32,7 +34,7 @@ namespace SeriesLyOffline2
             cmbVelocidadEscaneo.ItemsSource = Enum.GetNames((typeof(DiscoLogico.VelocidadEscaneo)));
             cmbModoEscaneo.SelectedItem = disco.ModoEscaneoBD.ToString();
             cmbVelocidadEscaneo.SelectedItem = disco.Velocidad.ToString();
-            cmbModoEscaneo.SelectionChanged += CambiaModoEscaneo;
+            cmbModoEscaneo.SelectionChanged += CambiarModoEscaneo;
             cmbVelocidadEscaneo.SelectionChanged += CambiaVelocidadEscaneo;
             txtRutaSeleccionada.Text = disco.Root;
             incrementoPorCiclo.Text = disco.IncrementoComprbarBDUnidad+"";
@@ -41,21 +43,22 @@ namespace SeriesLyOffline2
             incrementoPorCiclo.TextChanged += ValidaTexto;
             intervalInicial.TextChanged += ValidaTexto;
             ciclosParaCambio.TextChanged += ValidaTexto;
-            incrementoPorCiclo.AcceptsReturn = true;
-            intervalInicial.AcceptsReturn = true;
-            ciclosParaCambio.AcceptsReturn = true;
-        
+            CambiarModoEscaneo(disco.ModoEscaneoBD);
+            this.pgrTrabajando.MouseLeftButtonUp += pgrTrabajando_LeftUpClick_1;
+
+
         }
 
         private void ValidaTexto(object sender, TextChangedEventArgs e)
         {
             try
             {
-                string numero = ((TextBox)sender).Text;
-                Convert.ToInt32(numero);
+
+                System.Windows.Controls.TextBox txtSender = sender as System.Windows.Controls.TextBox;
+                Convert.ToInt32(txtSender.Text);
             }
-            catch {
-                MessageBox.Show("Solo se pueden usar numeros enteros");
+            catch (FormatException){
+                System.Windows.MessageBox.Show("Solo se pueden usar numeros enteros");
             }
         }
 
@@ -64,13 +67,21 @@ namespace SeriesLyOffline2
             disco.Velocidad = (DiscoLogico.VelocidadEscaneo)Enum.Parse(typeof(DiscoLogico.VelocidadEscaneo), cmbVelocidadEscaneo.SelectedItem as string);
         }
 
-        private void CambiaModoEscaneo(object sender, SelectionChangedEventArgs e)
+        private void CambiarModoEscaneo(object sender, SelectionChangedEventArgs e)
         {
-            disco.ModoEscaneoBD = (DiscoLogico.ModoEscaneo)Enum.Parse(typeof(DiscoLogico.ModoEscaneo), cmbModoEscaneo.SelectedItem as string);
+            CambiarModoEscaneo((DiscoLogico.ModoEscaneo)Enum.Parse(typeof(DiscoLogico.ModoEscaneo), cmbModoEscaneo.SelectedItem as string));
+
+        }
+        private void CambiarModoEscaneo(DiscoLogico.ModoEscaneo modo)
+        {
+            disco.ModoEscaneoBD = modo;
             incrementoPorCiclo.IsEnabled = false;
             intervalInicial.IsEnabled = false;
             ciclosParaCambio.IsEnabled = false;
-            switch (disco.ModoEscaneoBD) {
+            //falta que al cambiarlo se cambie en el disco...
+            /*
+            switch (disco.ModoEscaneoBD)
+            {
                 case DiscoLogico.ModoEscaneo.CadaXTiempo:
                     intervalInicial.IsEnabled = true; break;
                 case DiscoLogico.ModoEscaneo.CadaXTiempoIncrementandolo:
@@ -80,9 +91,8 @@ namespace SeriesLyOffline2
                     incrementoPorCiclo.IsEnabled = true;
                     intervalInicial.IsEnabled = true;
                     ciclosParaCambio.IsEnabled = true; break;
-            }
+            }*/
         }
-
         private void PonColorEstado(DiscoLogico disco, DiscoLogico.EstadoEscaneo estado)
         {
             Brush color=Brushes.AliceBlue;
@@ -108,11 +118,26 @@ namespace SeriesLyOffline2
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
             //navega entre las carpetas
+            FolderBrowserDialog folderBrowser = new FolderBrowserDialog();
+            if (folderBrowser.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                if(!DiscoLogico.EstaLaRuta(folderBrowser.SelectedPath))
+                {
+                    disco.Root = folderBrowser.SelectedPath;
+                    txtRutaSeleccionada.Text = disco.Root;
+                    if (CambioNombreDisco != null)
+                        CambioNombreDisco(this, new EventArgs());
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show("La ruta ya esta activa actualmente");
+                }
+            }
         }
         private void pgrTrabajando_LeftUpClick_1(object sender, MouseButtonEventArgs e)
         {
             disco.EscanearAsync();
-            MessageBox.Show("Se ha puesto a escanear");
+            System.Windows.MessageBox.Show("Se ha puesto a escanear");
         }
     }
 }

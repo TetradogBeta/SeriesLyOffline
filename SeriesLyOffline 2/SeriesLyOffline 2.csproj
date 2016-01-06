@@ -42,6 +42,10 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Gabriel.Cat.Utilitats, Version=1.0.5849.19541, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Gabriel.Cat.Utilitats\bin\Release\Gabriel.Cat.Utilitats.dll</HintPath>
+    </Reference>
     <Reference Include="Gabriel.Cat.Wpf">
       <HintPath>..\..\..\Gabriel.Cat.Wpf\bin\Release\Gabriel.Cat.Wpf.dll</HintPath>
     </Reference>
@@ -175,12 +179,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="bigLogoNew.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Gabriel.Cat.Utilitats\Gabriel.Cat.Utilitats.csproj">
-      <Project>{d60d408f-9802-4562-82a1-528ba7202b44}</Project>
-      <Name>Gabriel.Cat.Utilitats</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

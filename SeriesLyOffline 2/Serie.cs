@@ -246,14 +246,14 @@ namespace SeriesLyOffline2
         public static XmlNode ToXml(IEnumerable<Serie> series)
         {
             text stringXml = "";
-            XmlDocument nodoXml=new XmlDocument();
+            XmlDocument nodoXml = new XmlDocument();
             LlistaOrdenada<string, string> capitulosVistos = new LlistaOrdenada<string, string>();
             Llista<string> seriesGuardadas = new Llista<string>();
             LlistaOrdenada<string, Llista<string>> seriesConvinadasGuardadas = new LlistaOrdenada<string, Llista<string>>();
             text serieConvinadaXml = "";
             int numeroVistos = 0;
             string[] campos;
-            stringXml+="<SeriesLy>";
+            stringXml += "<SeriesLy>";
             foreach (Serie serie in series)
             {
 
@@ -281,30 +281,30 @@ namespace SeriesLyOffline2
                 }
 
             }
-            stringXml+="<CapitulosVistos>";
+            stringXml += "<CapitulosVistos>";
             foreach (var capitulo in capitulosVistos)
                 stringXml += "<Capitulo>" + capitulo.Value + "</Capitulo>";
-            stringXml+="</CapitulosVistos>";
+            stringXml += "</CapitulosVistos>";
 
-            stringXml+="<Series>";
+            stringXml += "<Series>";
             for (int i = 0; i < seriesGuardadas.Count; i++)
             {
                 campos = seriesGuardadas[i].Split(';');
-                stringXml+="<Serie>" + "<Ruta>" + ParsePath(campos[0], caracteresXmlReservados) + "</Ruta>" + "<Vistos>" + campos[1] + "</Vistos>" + "</Serie>";
+                stringXml += "<Serie>" + "<Ruta>" + ParsePath(campos[0], caracteresXmlReservados) + "</Ruta>" + "<Vistos>" + campos[1] + "</Vistos>" + "</Serie>";
             }
             foreach (var serieConvinada in seriesConvinadasGuardadas)
             {
                 serieConvinadaXml = "<SerieConvinada><Id>" + serieConvinada.Key + "</Id>";
                 for (int i = 0; i < serieConvinada.Value.Count; i++)
                 {
-                    campos = serieConvinada.Value[i].Split(';');   
-                    serieConvinadaXml += "<SerieAnidada>" + "<Ruta>" + ParsePath(campos[0],caracteresXmlReservados) + "</Ruta>" + "<Vistos>" + campos[1] + "</Vistos>" + "</SerieAnidada>";
+                    campos = serieConvinada.Value[i].Split(';');
+                    serieConvinadaXml += "<SerieAnidada>" + "<Ruta>" + ParsePath(campos[0], caracteresXmlReservados) + "</Ruta>" + "<Vistos>" + campos[1] + "</Vistos>" + "</SerieAnidada>";
                 }
                 serieConvinadaXml += "</SerieConvinada>";
-                stringXml+=serieConvinadaXml;
+                stringXml += serieConvinadaXml;
             }
-            stringXml+="</Series>";
-            stringXml+="</SeriesLy>";
+            stringXml += "</Series>";
+            stringXml += "</SeriesLy>";
             nodoXml.LoadXml(stringXml);
             nodoXml.Normalize();
             return nodoXml.FirstChild;
@@ -329,7 +329,7 @@ namespace SeriesLyOffline2
                     if (nodoSerie.Name == "Serie")
                     {
 
-                        serieActual = new Serie(nodoSerie, ParsePath(nodoSerie.FirstChild.InnerText,caracteresXmlSustitutos));/* desescapar caracteres no soportados en el xml por los originales*/
+                        serieActual = new Serie(nodoSerie, ParsePath(nodoSerie.FirstChild.InnerText, caracteresXmlSustitutos));/* desescapar caracteres no soportados en el xml por los originales*/
                     }
                     else
                     {
@@ -339,14 +339,15 @@ namespace SeriesLyOffline2
                     if (SerieNuevaCargada != null)
                         SerieNuevaCargada(serieActual);
                 }
-                catch (Exception m){
+                catch (Exception m)
+                {
 
                 }
             }
             return series.ToTaula();
         }
 
-        protected static string ParsePath(string pathXmlParse,string[] caracteresASustituir)
+        protected static string ParsePath(string pathXmlParse, string[] caracteresASustituir)
         {
             text pathSerie = pathXmlParse;
             for (int j = 0; j < caracteresASustituir.Length; j++)
@@ -386,11 +387,11 @@ namespace SeriesLyOffline2
             : this()
         {
             string[] camposId = serieXml.FirstChild.InnerText.Split(';');
-            IdMix = camposId[2];
-            Nombre = camposId[1];
+            IdMix = camposId[1];
+            Nombre = camposId[0];
             for (int i = 1; i < serieXml.ChildNodes.Count; i++)
             {
-                Añadir(new Serie(serieXml.ChildNodes[i], ParsePath(serieXml.ChildNodes[i].FirstChild.InnerText,caracteresXmlSustitutos)));
+                Añadir(new Serie(serieXml.ChildNodes[i], ParsePath(serieXml.ChildNodes[i].FirstChild.InnerText, caracteresXmlSustitutos)));
             }
         }
         public string Nombre
@@ -452,21 +453,26 @@ namespace SeriesLyOffline2
         }
         public override Estado ConsultaEstado()
         {
-            Estado estado;
-            int numeroDeVistas = 0;
-            bool sinPendientes = true;
+            Estado estado, estadoSerie;
+            int numeroDeVistas = 0,numSeries=0;
+            bool seEstaSiguiendoUnaSerie = false;
             series.WhileEach((serie) =>
             {
-                if (serie.Value.ConsultaEstado() != Estado.Pendiente)
-                    numeroDeVistas++;
-                else if (numeroDeVistas > 0)
-                    sinPendientes = false;//ahora se que no esta acabada y esta siguiendose
-                return sinPendientes;
+                numSeries++;
+                estadoSerie = serie.Value.ConsultaEstado();
+                switch (estadoSerie)
+                {
+                    case Estado.Acabada:numeroDeVistas++; break;
+                    case Estado.Siguiendo:seEstaSiguiendoUnaSerie = true; break;
+                }
+                if (numeroDeVistas>0&&numSeries != numeroDeVistas)
+                    seEstaSiguiendoUnaSerie = true;
+                return !seEstaSiguiendoUnaSerie;
             });
-            if (numeroDeVistas == 0)
-                estado = Estado.Pendiente;
-            else if (numeroDeVistas < series.Count)
+            if (seEstaSiguiendoUnaSerie)
                 estado = Estado.Siguiendo;
+            else if (numeroDeVistas == 0)
+                estado = Estado.Pendiente;
             else
                 estado = Estado.Acabada;
             return estado;
@@ -513,7 +519,14 @@ namespace SeriesLyOffline2
                 serie.Value.CargarCapitulos();
         }
 
-
+        protected override IEnumerable<string> GuardarVistos()
+        {
+            List<string> listaVistos = new List<string>();
+            foreach (Capitulo capitulo in this)
+                if (capitulo.Visto)
+                    listaVistos.Add(capitulo.LineaGuardado);
+            return listaVistos;
+        }
 
         IEnumerator<Serie> IEnumerable<Serie>.GetEnumerator()
         {
