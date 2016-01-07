@@ -294,7 +294,7 @@ namespace SeriesLyOffline2
             }
             foreach (var serieConvinada in seriesConvinadasGuardadas)
             {
-                serieConvinadaXml = "<SerieConvinada><Id>" + serieConvinada.Key + "</Id>";
+                serieConvinadaXml = "<SerieConvinada><Id>" + ParsePath(serieConvinada.Key, caracteresXmlReservados)  + "</Id>";
                 for (int i = 0; i < serieConvinada.Value.Count; i++)
                 {
                     campos = serieConvinada.Value[i].Split(';');
@@ -386,7 +386,7 @@ namespace SeriesLyOffline2
         public SerieConvinada(XmlNode serieXml)
             : this()
         {
-            string[] camposId = serieXml.FirstChild.InnerText.Split(';');
+            string[] camposId = ParsePath(serieXml.FirstChild.InnerText, caracteresXmlSustitutos).Split(';');
             IdMix = camposId[1];
             Nombre = camposId[0];
             for (int i = 1; i < serieXml.ChildNodes.Count; i++)
@@ -404,8 +404,6 @@ namespace SeriesLyOffline2
             set
             {
                 if (value == null) value = "";
-                else if (value.Contains(Path.DirectorySeparatorChar + ""))
-                    throw new Exception("No puede contener este caracter");
                 nombre = value;
             }
         }
