@@ -62,6 +62,7 @@ namespace SeriesLyOffline_2
 
         private void Load()
         {
+            XmlDocument xml;
             if (File.Exists(PATHDATOSLY))
             {
 
@@ -70,7 +71,7 @@ namespace SeriesLyOffline_2
                     try
                     {
 
-                        XmlDocument xml = new XmlDocument();
+                        xml = new XmlDocument();
                         xml.LoadXml(File.ReadAllText(PATHDATOSLY));
                         Configuracion.LoadXml(xml.FirstChild.FirstChild);
                         Serie.DameSeries(xml.FirstChild.LastChild);
@@ -88,9 +89,10 @@ namespace SeriesLyOffline_2
         }
         private void QuitaDirectorioSiEsta(DiscoLogico disco, IOArgs dir)
         {
+            Action act;
             if (series.Existeix(dir.Path))
             {
-                Action act = () =>
+                act = () =>
                 {
                     clstSeries.Remove(series[dir.Path]);
                     clstSeries.VolverASeleccionar();
@@ -102,11 +104,13 @@ namespace SeriesLyOffline_2
 
         private void PonDirectorioSiNoEsta(DiscoLogico disco, IOArgs dir)
         {
+            Action act;
+            Serie serieAPoner;
             if (!series.Existeix(dir.Path))
             {
-                Action act = () =>
+                act = () =>
                 {
-                    Serie serieAPoner = CargaCarpeta(new DirectoryInfo(dir.Path));
+                    serieAPoner = CargaCarpeta(new DirectoryInfo(dir.Path));
                     if (serieAPoner!=null)
                     {
                         series.Afegir(dir.Path, serieAPoner);
@@ -118,6 +122,10 @@ namespace SeriesLyOffline_2
         }
         private void SiPulsaControl(object sender, KeyEventArgs e)
         {
+            CapituloViewer capitulo;
+            Serie[] seriesAConvinar;
+            PedirNombreSerieWindow nombre;
+
             switch (e.Key)
             {
                 case Key.S://poner a cargar
@@ -127,8 +135,8 @@ namespace SeriesLyOffline_2
                     if (serieViewer.SerieAVisualizar != null)
                     {
 
-                        foreach (CapituloViewer capitulo in serieViewer)
-                            capitulo.Visto = true;
+                        for(int i=0;i<serieViewer.ColeccionControles.Count;i++)
+                           ((CapituloViewer)serieViewer.ColeccionControles[i]).Visto = true;
                     }
 
 
@@ -138,20 +146,21 @@ namespace SeriesLyOffline_2
 
                     if (serieViewer.SerieAVisualizar != null)
                     {
-
-                        foreach (CapituloViewer capitulo in serieViewer)
-                            capitulo.Visto = false;
+                        for (int i = 0; i < serieViewer.ColeccionControles.Count; i++)
+                            ((CapituloViewer)serieViewer.ColeccionControles[i]).Visto = false;
                     }
 
                     break;//deselecciona todos
 
                 case Key.I://poner a cargar
-
                     if (serieViewer.SerieAVisualizar != null)
                     {
 
-                        foreach (Capitulo capitulo in serieViewer.SerieAVisualizar)
+                        for (int i = 0; i < serieViewer.ColeccionControles.Count; i++)
+                        {
+                            capitulo = ((CapituloViewer)serieViewer.ColeccionControles[i]);
                             capitulo.Visto = !capitulo.Visto;
+                        }
 
                     }
 
@@ -159,10 +168,10 @@ namespace SeriesLyOffline_2
                 case Key.M:
                     //si solo hay uno si es mixted se desmixta XD
                     //saca un control para poner nombre
-                    Serie[] seriesAConvinar = clstSeries.SelectedItems().Casting<Serie>().ToArray();
+                    seriesAConvinar = clstSeries.SelectedItems().Casting<Serie>().ToArray();
                     if (seriesAConvinar.Length > 1)
                     {
-                        PedirNombreSerieWindow nombre = new PedirNombreSerieWindow();
+                        nombre = new PedirNombreSerieWindow();
                         nombre.PonFocoEscritura();
                         nombre.ShowDialog();
 
@@ -221,10 +230,11 @@ namespace SeriesLyOffline_2
 
         private void PonSerieCargada(Serie serie)
         {
+            Action act;
             if (!series.Existeix(serie.Clau()))
             {
                 series.Afegir(serie.Clau(), serie);
-                Action act = () => { clstSeries.Add(serie, DameColor(serie)); };
+                act = () => { clstSeries.Add(serie, DameColor(serie)); };
                 Dispatcher.BeginInvoke(act);
             }
         }
@@ -265,15 +275,16 @@ namespace SeriesLyOffline_2
 
         private void GuardaSeries(object sender, CancelEventArgs e)
         {
-
+            FileStream fs;
+            StreamWriter sw;
             DiscoLogico.AcabaTodaActividad();
             if (new DirectoryInfo(Path.GetDirectoryName(PATHDATOSLY)).CanWrite())
             {
                 if (acabadoDeCargar)
                 {
                    
-                    FileStream fs = new FileStream(PATHDATOSLY, FileMode.Create);
-                    StreamWriter sw = new StreamWriter(fs, System.Text.Encoding.UTF8);
+                    fs = new FileStream(PATHDATOSLY, FileMode.Create);
+                    sw = new StreamWriter(fs, System.Text.Encoding.UTF8);
                     try
                     {
                         sw.WriteLine("<SeriesLyOffLine>");

@@ -30,7 +30,10 @@ namespace SeriesLyOffline2
             InitializeComponent();
             capitulosCargados = new Pila<CapituloViewer>();
         }
-
+        public UIElementCollection ColeccionControles
+        {
+            get { return stkCapitulos.Children; }
+        }
         public Serie SerieAVisualizar
         {
             get
@@ -69,7 +72,7 @@ namespace SeriesLyOffline2
                 
             }
         }
-
+        
         public IEnumerator<CapituloViewer> GetEnumerator()
         {
             return stkCapitulos.Children.OfType<CapituloViewer>().ObtieneEnumerador();

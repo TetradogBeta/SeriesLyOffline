@@ -21,12 +21,13 @@ namespace SeriesLyOffline2
         public static event SerieEncontradaEventHandler SerieNuevaCargada;
         static readonly string[] extensionesMultimedia = { ".avi", ".mp4", ".mkv", ".mpeg", ".wmv", ".flv", ".m2ts" };//poner mas formatos de video :D
         public static readonly LlistaOrdenada<string, string> diccionarioMultimedia;
-        private LlistaOrdenada<IComparable, Capitulo> capitulos;
         private static LlistaOrdenada<string, string> capitulosVistosGuardados;
 
+        private LlistaOrdenada<IComparable, Capitulo> capitulos;
         protected DirectoryInfo dirPadre;
         string idMix;
         bool serieCargada;
+
         static Serie()
         {
             capitulosVistosGuardados = new LlistaOrdenada<string, string>();
@@ -65,17 +66,6 @@ namespace SeriesLyOffline2
             serieCargada = false;
         }
 
-        internal LlistaOrdenada<IComparable, Capitulo> Capitulos
-        {
-            get
-            {
-                if (!serieCargada)
-                    CargarCapitulos();
-                return capitulos;
-            }
-        }
-
-
         public DirectoryInfo Directorio
         {
             get { return dirPadre; }
@@ -105,9 +95,11 @@ namespace SeriesLyOffline2
         public virtual void QuitarNoDisponibles()
         {
             Llista<Capitulo> capitulosHaQuitar = new Llista<Capitulo>();
-            foreach (var capitulo in capitulos)
+
+            foreach (KeyValuePair<IComparable,Capitulo> capitulo in capitulos)
                 if (!capitulo.Value.CampruebaDisponivilidad())
                     capitulosHaQuitar.Afegir(capitulo.Value);
+
             for (int i = 0; i < capitulosHaQuitar.Count; i++)
                 capitulos.Elimina(capitulosHaQuitar[i].Clau());
         }
@@ -147,7 +139,6 @@ namespace SeriesLyOffline2
             Capitulo capitulo = null;
             int numVistos = 0;
             archivosMultimedia = Serie.ArchivosMultimedia(dirPadre);
-
             capitulos.Buida();
             for (int i = 0; i < archivosMultimedia.Length; i++)
             {
@@ -171,7 +162,7 @@ namespace SeriesLyOffline2
         protected virtual IEnumerable<string> GuardarVistos()
         {
             Llista<string> vistos = new Llista<string>();
-            foreach (var capitulo in capitulos)
+            foreach (KeyValuePair<IComparable,Capitulo> capitulo in capitulos)
                 if (capitulo.Value.Visto)
                     vistos.Afegir(capitulo.Value.LineaGuardado);
             return vistos;
@@ -205,7 +196,7 @@ namespace SeriesLyOffline2
         }
         public virtual IEnumerator<Capitulo> GetCapitulos()
         {
-            return Capitulos.ValuesToArray().ObtieneEnumerador();
+            return capitulos.ValuesToArray().ObtieneEnumerador();
         }
         IEnumerator IEnumerable.GetEnumerator()
         {
@@ -274,7 +265,7 @@ namespace SeriesLyOffline2
 
             }
             stringXml += "<CapitulosVistos>";
-            foreach (var capitulo in capitulosVistos)
+            foreach (KeyValuePair<string,string> capitulo in capitulosVistos)
                 stringXml += "<Capitulo>" + capitulo.Value + "</Capitulo>";
             stringXml += "</CapitulosVistos>";
 
@@ -284,7 +275,7 @@ namespace SeriesLyOffline2
                 campos = seriesGuardadas[i].Split(';');
                 stringXml += "<Serie>" + "<Ruta>" + campos[0].EscaparCaracteresXML() + "</Ruta>" + "<Vistos>" + campos[1] + "</Vistos>" + "</Serie>";
             }
-            foreach (var serieConvinada in seriesConvinadasGuardadas)
+            foreach (KeyValuePair<string, Llista<string>> serieConvinada in seriesConvinadasGuardadas)
             {
                 serieConvinadaXml = "<SerieConvinada><Id>" + serieConvinada.Key.EscaparCaracteresXML()  + "</Id>";
                 for (int i = 0; i < serieConvinada.Value.Count; i++)
@@ -331,10 +322,7 @@ namespace SeriesLyOffline2
                     if (SerieNuevaCargada != null)
                         SerieNuevaCargada(serieActual);
                 }
-                catch (Exception m)
-                {
-
-                }
+                catch{}
             }
             return series.ToTaula();
         }
@@ -361,8 +349,9 @@ namespace SeriesLyOffline2
         public SerieConvinada(DirectoryInfo dir)
             : this()
         {
+            DirectoryInfo[] dirsSeries;
             dirPadre = dir;
-            DirectoryInfo[] dirsSeries = dir.GetDirectories().Filtra((dirAComprobar) => { return Serie.UsarSoloCarpetasMultimedia(dirAComprobar); }).ToTaula();
+            dirsSeries = dir.GetDirectories().Filtra((dirAComprobar) => { return Serie.UsarSoloCarpetasMultimedia(dirAComprobar); }).ToTaula();
             for (int i = 0; i < dirsSeries.Length; i++)
                 Añadir(new Serie(dirsSeries[i], false));
         }
@@ -423,13 +412,12 @@ namespace SeriesLyOffline2
         public override void QuitarNoDisponibles()
         {
             //quito las series no disponibles
-            IEnumerable<Serie> seriesDisponibles = series.Filtra((serie) => { return serie.Value.CompruebaDisponivilidad(); }).ValuesToArray();
+            Serie[] seriesDisponibles = series.Filtra((serie) => { return serie.Value.CompruebaDisponivilidad(); }).ValuesToArray();
             series.Buida();
-            foreach (Serie serieDisponible in seriesDisponibles)
-            {
-                series.Afegir(serieDisponible.Clau(), serieDisponible);
-                //quito los capitulos no disponibles
-                serieDisponible.QuitarNoDisponibles();
+            for(int i = 0; i < seriesDisponibles.Length; i++) { 
+                series.Afegir(seriesDisponibles[i].Clau(), seriesDisponibles[i]);
+            //quito los capitulos no disponibles
+            seriesDisponibles[i].QuitarNoDisponibles();
             }
 
         }
@@ -516,7 +504,7 @@ namespace SeriesLyOffline2
         }
         public override IEnumerator<Capitulo> GetCapitulos()
         {
-            foreach (var serie in series)
+            foreach (KeyValuePair<IComparable, Serie> serie in series)
                 foreach (Capitulo capitulo in serie.Value)
                     yield return capitulo;
         }
