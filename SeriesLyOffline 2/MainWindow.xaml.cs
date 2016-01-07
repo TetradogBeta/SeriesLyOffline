@@ -23,6 +23,7 @@ namespace SeriesLyOffline_2
     public partial class MainWindow : Window
     {
         LlistaOrdenada<IComparable, Serie> series;
+        LlistaOrdenada<IComparable, Serie> seriesTodas;
         private bool acabadoDeCargar;
         readonly string PATHDATOSLY = Environment.CurrentDirectory + System.IO.Path.DirectorySeparatorChar + "datos.ly";
         public MainWindow()
@@ -30,6 +31,7 @@ namespace SeriesLyOffline_2
             if (new DirectoryInfo(Path.GetDirectoryName(PATHDATOSLY)).CanWrite() || MessageBox.Show("No se puede escribir en el directorio, eso puede imperdir guardar y/o actualizar la base de datos, Si quieres puedes usarlo sabiendo que se puede perder el trabajo hecho", "Problema con los permisos de escritura", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes)
             {
                 series = new LlistaOrdenada<IComparable, Serie>();
+                seriesTodas = new LlistaOrdenada<IComparable, Serie>();
                 InitializeComponent();
                 clstSeries.Sorted = true;
                 imagen.SetImage(Imagenes.mainlogo2);
@@ -106,7 +108,7 @@ namespace SeriesLyOffline_2
         {
             Action act;
             Serie serieAPoner;
-            if (!series.Existeix(dir.Path))
+            if (!seriesTodas.Existeix(dir.Path))
             {
                 act = () =>
                 {
@@ -114,6 +116,7 @@ namespace SeriesLyOffline_2
                     if (serieAPoner!=null)
                     {
                         series.Afegir(dir.Path, serieAPoner);
+                        seriesTodas.Afegir(dir.Path, serieAPoner);
                         clstSeries.Add(serieAPoner, DameColor(serieAPoner));
                     }
                 };
@@ -231,9 +234,30 @@ namespace SeriesLyOffline_2
         private void PonSerieCargada(Serie serie)
         {
             Action act;
-            if (!series.Existeix(serie.Clau()))
+            bool añadir = true;
+            if (serie is SerieConvinada)
             {
-                series.Afegir(serie.Clau(), serie);
+                foreach (Serie serieConvinada in (IEnumerable<Serie>)serie)
+                {
+                    if (!seriesTodas.Existeix(serieConvinada.Clau()))
+                    {
+                        seriesTodas.Afegir(serieConvinada);
+                    }
+
+                }
+            }
+            else if (!seriesTodas.Existeix(serie.Clau()))
+            {
+                seriesTodas.Afegir(serie);
+
+            }
+            else
+            {
+                añadir = false;
+            }
+            if (añadir)
+            {
+                series.Afegir(serie);
                 act = () => { clstSeries.Add(serie, DameColor(serie)); };
                 Dispatcher.BeginInvoke(act);
             }
