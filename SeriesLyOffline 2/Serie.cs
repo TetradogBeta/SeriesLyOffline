@@ -20,12 +20,10 @@ namespace SeriesLyOffline2
         }
         public static event SerieEncontradaEventHandler SerieNuevaCargada;
         public static readonly string[] extensionesMultimedia = { ".avi", ".mp4", ".mkv", ".mpeg", ".wmv", ".flv", ".m2ts" };//poner mas formatos de video :D
-        protected static readonly string[] caracteresXmlSustitutos = { "&lt;", "&gt;", "&amp;", "&quot;", "&apos;" };
-        protected static readonly string[] caracteresXmlReservados = { "<", ">", "&", "\"", "\'" };
         static readonly LlistaOrdenada<string, string> diccionarioMultimedia;
         private LlistaOrdenada<IComparable, Capitulo> capitulos;
         private static LlistaOrdenada<string, string> capitulosVistosGuardados;
-        private static LlistaOrdenada<string, string> caracteresReservadosXml;
+
         protected DirectoryInfo dirPadre;
         string idMix;
         bool serieCargada;
@@ -33,12 +31,6 @@ namespace SeriesLyOffline2
         {
             capitulosVistosGuardados = new LlistaOrdenada<string, string>();
             diccionarioMultimedia = new LlistaOrdenada<string, string>();
-            caracteresReservadosXml = new LlistaOrdenada<string, string>();
-            for (int i = 0; i < caracteresXmlReservados.Length; i++)
-            {
-                caracteresReservadosXml.Afegir(caracteresXmlReservados[i], caracteresXmlSustitutos[i]);
-                caracteresReservadosXml.Afegir(caracteresXmlSustitutos[i], caracteresXmlReservados[i]);
-            }
             for (int i = 0; i < extensionesMultimedia.Length; i++)
                 diccionarioMultimedia.Afegir(extensionesMultimedia[i], extensionesMultimedia[i]);
 
@@ -290,15 +282,15 @@ namespace SeriesLyOffline2
             for (int i = 0; i < seriesGuardadas.Count; i++)
             {
                 campos = seriesGuardadas[i].Split(';');
-                stringXml += "<Serie>" + "<Ruta>" + ParsePath(campos[0], caracteresXmlReservados) + "</Ruta>" + "<Vistos>" + campos[1] + "</Vistos>" + "</Serie>";
+                stringXml += "<Serie>" + "<Ruta>" + campos[0].EscaparCaracteresXML() + "</Ruta>" + "<Vistos>" + campos[1] + "</Vistos>" + "</Serie>";
             }
             foreach (var serieConvinada in seriesConvinadasGuardadas)
             {
-                serieConvinadaXml = "<SerieConvinada><Id>" + ParsePath(serieConvinada.Key, caracteresXmlReservados)  + "</Id>";
+                serieConvinadaXml = "<SerieConvinada><Id>" + serieConvinada.Key.EscaparCaracteresXML()  + "</Id>";
                 for (int i = 0; i < serieConvinada.Value.Count; i++)
                 {
                     campos = serieConvinada.Value[i].Split(';');
-                    serieConvinadaXml += "<SerieAnidada>" + "<Ruta>" + ParsePath(campos[0], caracteresXmlReservados) + "</Ruta>" + "<Vistos>" + campos[1] + "</Vistos>" + "</SerieAnidada>";
+                    serieConvinadaXml += "<SerieAnidada>" + "<Ruta>" + campos[0].EscaparCaracteresXML() + "</Ruta>" + "<Vistos>" + campos[1] + "</Vistos>" + "</SerieAnidada>";
                 }
                 serieConvinadaXml += "</SerieConvinada>";
                 stringXml += serieConvinadaXml;
@@ -329,7 +321,7 @@ namespace SeriesLyOffline2
                     if (nodoSerie.Name == "Serie")
                     {
 
-                        serieActual = new Serie(nodoSerie, ParsePath(nodoSerie.FirstChild.InnerText, caracteresXmlSustitutos));/* desescapar caracteres no soportados en el xml por los originales*/
+                        serieActual = new Serie(nodoSerie, nodoSerie.FirstChild.InnerText.DescaparCaracteresXML());/* desescapar caracteres no soportados en el xml por los originales*/
                     }
                     else
                     {
@@ -345,14 +337,6 @@ namespace SeriesLyOffline2
                 }
             }
             return series.ToTaula();
-        }
-
-        protected static string ParsePath(string pathXmlParse, string[] caracteresASustituir)
-        {
-            text pathSerie = pathXmlParse;
-            for (int j = 0; j < caracteresASustituir.Length; j++)
-                pathSerie.Replace(caracteresASustituir[j], caracteresReservadosXml[caracteresASustituir[j]]);
-            return pathSerie;
         }
 
         public bool SerieCargada { get { return serieCargada; } }
@@ -386,12 +370,12 @@ namespace SeriesLyOffline2
         public SerieConvinada(XmlNode serieXml)
             : this()
         {
-            string[] camposId = ParsePath(serieXml.FirstChild.InnerText, caracteresXmlSustitutos).Split(';');
+            string[] camposId = serieXml.FirstChild.InnerText.DescaparCaracteresXML().Split(';');
             IdMix = camposId[1];
             Nombre = camposId[0];
             for (int i = 1; i < serieXml.ChildNodes.Count; i++)
             {
-                Añadir(new Serie(serieXml.ChildNodes[i], ParsePath(serieXml.ChildNodes[i].FirstChild.InnerText, caracteresXmlSustitutos)));
+                Añadir(new Serie(serieXml.ChildNodes[i], serieXml.ChildNodes[i].FirstChild.InnerText.DescaparCaracteresXML()));
             }
         }
         public string Nombre
