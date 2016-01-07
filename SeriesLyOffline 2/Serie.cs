@@ -19,8 +19,8 @@ namespace SeriesLyOffline2
             Pendiente, Siguiendo, Acabada
         }
         public static event SerieEncontradaEventHandler SerieNuevaCargada;
-        public static readonly string[] extensionesMultimedia = { ".avi", ".mp4", ".mkv", ".mpeg", ".wmv", ".flv", ".m2ts" };//poner mas formatos de video :D
-        static readonly LlistaOrdenada<string, string> diccionarioMultimedia;
+        static readonly string[] extensionesMultimedia = { ".avi", ".mp4", ".mkv", ".mpeg", ".wmv", ".flv", ".m2ts" };//poner mas formatos de video :D
+        public static readonly LlistaOrdenada<string, string> diccionarioMultimedia;
         private LlistaOrdenada<IComparable, Capitulo> capitulos;
         private static LlistaOrdenada<string, string> capitulosVistosGuardados;
 

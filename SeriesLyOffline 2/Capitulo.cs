@@ -19,8 +19,6 @@ namespace SeriesLyOffline2
         public Capitulo(FileInfo capitulo)
         {
             this.ArchivoMultimedia = capitulo;
-            if (!Serie.extensionesMultimedia.Existe(capitulo.Extension))
-                throw new Exception("No es un archivo multimedia compatible!");
         }
         public Capitulo(FileInfo capitulo,bool visto):this(capitulo)
         { Visto = visto; }
@@ -35,7 +33,7 @@ namespace SeriesLyOffline2
             {
                 if (value == null)
                     throw new NullReferenceException();
-                else if (!Serie.extensionesMultimedia.Existe(value.Extension))
+                else if (!Serie.diccionarioMultimedia.Existeix(value.Extension))
                     throw new Exception("No es un archivo multimedia compatible!");
                 capitulo = value;
                 clau = null;

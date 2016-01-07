@@ -248,17 +248,8 @@ namespace SeriesLyOffline_2
         private Serie CargaCarpeta(DirectoryInfo directorio)
         {
             Serie serie = null;
-            bool serieCargada = false;
-            series.WhileEach((serieKey) =>
-            {
-                if (serieKey.Value.CompruebaDireccion(directorio))
-                {
-                    serieCargada = true;
-                }
-                return !serieCargada;
-            });
 
-            if (!serieCargada)
+            if (!series.Existeix(directorio.FullName))
                 try
                 {
 
@@ -280,25 +271,32 @@ namespace SeriesLyOffline_2
             {
                 if (acabadoDeCargar)
                 {
+                   
                     FileStream fs = new FileStream(PATHDATOSLY, FileMode.Create);
                     StreamWriter sw = new StreamWriter(fs, System.Text.Encoding.UTF8);
-                    sw.WriteLine("<SeriesLyOffLine>");
-                    sw.WriteLine(Configuracion.ToXml().OuterXml);
-                    if (Debugger.IsAttached)
+                    try
                     {
-                        Console.WriteLine("inicio guardar series");
-                    }
-                    //si si aun no a cargado las series guardadas no las borra!!
+                        sw.WriteLine("<SeriesLyOffLine>");
+                        sw.WriteLine(Configuracion.ToXml().OuterXml);
+                        if (Debugger.IsAttached)
+                        {
+                            Console.WriteLine("inicio guardar series");
+                        }
+                        //si si aun no a cargado las series guardadas no las borra!!
 
 
-                    sw.WriteLine(Serie.ToXml(series.ValuesToArray()).OuterXml);
-                    if (Debugger.IsAttached)
-                    {
-                        Console.WriteLine("fin guardar series");
+                        sw.WriteLine(Serie.ToXml(series.ValuesToArray()).OuterXml);
+                        if (Debugger.IsAttached)
+                        {
+                            Console.WriteLine("fin guardar series");
+                        }
                     }
-                    sw.WriteLine("</SeriesLyOffLine>");
-                    sw.Close();
-                    fs.Close();
+                    finally
+                    {
+                        sw.WriteLine("</SeriesLyOffLine>");
+                        sw.Close();
+                        fs.Close();
+                    }
                 }
             }
 
