@@ -478,9 +478,7 @@ namespace SeriesLyOffline2
         }
         public override bool CompruebaDireccion(DirectoryInfo direccion)
         {
-            bool valido = true;
-            series.WhileEach((serie) => { valido = serie.Value.CompruebaDireccion(direccion); return !valido; });//la primera serie quizas da false y ya sale...
-            return valido;
+        	return series.Existeix(direccion.FullName);
         }
 
         public override void CargarCapitulos()

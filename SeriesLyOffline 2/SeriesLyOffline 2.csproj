@@ -42,15 +42,14 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Gabriel.Cat.Utilitats, Version=1.0.5849.21854, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Gabriel.Cat.Utilitats\bin\Release\Gabriel.Cat.Utilitats.dll</HintPath>
+    <Reference Include="Gabriel.Cat.Utilitats">
+      <HintPath>..\..\Gabriel.Cat.Utilitat\bin\Release\Gabriel.Cat.Utilitats.dll</HintPath>
     </Reference>
     <Reference Include="Gabriel.Cat.Wpf">
-      <HintPath>..\..\Gabriel.Cat.Wpf\bin\Release\Gabriel.Cat.Wpf.dll</HintPath>
+      <HintPath>..\..\Gabriel.Cat.Wpf\Gabriel.Cat.Wpf\bin\Debug\Gabriel.Cat.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="MahApps.Metro">
-      <HintPath>..\..\MahApps.Metro\MahApps.Metro\bin\Release\MahApps.Metro.dll</HintPath>
+      <HintPath>..\..\MahApps.Metro\MahApps.Metro\bin\Debug\MahApps.Metro.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />

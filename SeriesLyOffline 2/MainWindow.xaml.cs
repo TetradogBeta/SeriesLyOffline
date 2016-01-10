@@ -1,4 +1,5 @@
 ﻿
+using System.CodeDom;
 using SeriesLyOffline2;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,6 @@ using Gabriel.Cat.Wpf;
 using Gabriel.Cat.Extension;
 using System.Diagnostics;
 using Gabriel.Cat;
-using System.Threading;
 using System.Xml;
 
 namespace SeriesLyOffline_2
@@ -23,7 +23,7 @@ namespace SeriesLyOffline_2
     public partial class MainWindow : Window
     {
         LlistaOrdenada<IComparable, Serie> series;
-        LlistaOrdenada<IComparable, Serie> seriesTodas;
+        LlistaOrdenada<IComparable, SerieConvinada> seriesConvinadas;
         private bool acabadoDeCargar;
         readonly string PATHDATOSLY = Environment.CurrentDirectory + System.IO.Path.DirectorySeparatorChar + "datos.ly";
         public MainWindow()
@@ -31,7 +31,7 @@ namespace SeriesLyOffline_2
             if (new DirectoryInfo(Path.GetDirectoryName(PATHDATOSLY)).CanWrite() || MessageBox.Show("No se puede escribir en el directorio, eso puede imperdir guardar y/o actualizar la base de datos, Si quieres puedes usarlo sabiendo que se puede perder el trabajo hecho", "Problema con los permisos de escritura", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes)
             {
                 series = new LlistaOrdenada<IComparable, Serie>();
-                seriesTodas = new LlistaOrdenada<IComparable, Serie>();
+                seriesConvinadas = new LlistaOrdenada<IComparable, SerieConvinada>();
                 InitializeComponent();
                 clstSeries.Sorted = true;
                 imagen.SetImage(Imagenes.mainlogo2);
@@ -48,7 +48,7 @@ namespace SeriesLyOffline_2
                 DiscoLogico.DirectorioPerdido += QuitaDirectorioSiEsta;
                 DiscoLogico.CarpetaBloqueada += QuitaDirectorioSiEsta;
                
-                Serie.SerieNuevaCargada += PonSerieCargada;//asi puede ir mas rapido :D al ir en paralelo :D
+                Serie.SerieNuevaCargada += CargarSerieDelXml;//asi puede ir mas rapido :D al ir en paralelo :D
                 clstSeries.ItemSelected += VisualizarSerie;
                 Closing += GuardaSeries;
                 //si seleccionan mas de uno (dándole a control sino hace click normal!)  ofrece para unirlas todas y poder ponerle un nombre cuando pulsa M (despues de seleccionarlas)
@@ -92,7 +92,7 @@ namespace SeriesLyOffline_2
         private void QuitaDirectorioSiEsta(DiscoLogico disco, IOArgs dir)
         {
             Action act;
-            if (series.Existeix(dir.Path))
+            if (series.Existeix(dir.Path)||ExisteDirEnUnMix(new DirectoryInfo(dir.Path)))
             {
                 act = () =>
                 {
@@ -108,7 +108,7 @@ namespace SeriesLyOffline_2
         {
             Action act;
             Serie serieAPoner;
-            if (!seriesTodas.Existeix(dir.Path))
+            if (!series.Existeix(dir.Path)&&!ExisteDirEnUnMix(new DirectoryInfo(dir.Path)))
             {
                 act = () =>
                 {
@@ -116,7 +116,6 @@ namespace SeriesLyOffline_2
                     if (serieAPoner!=null)
                     {
                         series.Afegir(dir.Path, serieAPoner);
-                        seriesTodas.Afegir(dir.Path, serieAPoner);
                         clstSeries.Add(serieAPoner, DameColor(serieAPoner));
                     }
                 };
@@ -128,6 +127,7 @@ namespace SeriesLyOffline_2
             CapituloViewer capitulo;
             Serie[] seriesAConvinar;
             PedirNombreSerieWindow nombre;
+            SerieConvinada serieConvinada;
 
             switch (e.Key)
             {
@@ -181,20 +181,22 @@ namespace SeriesLyOffline_2
 
                         if (!String.IsNullOrEmpty(nombre.NombreMix))
                         {
-                            SerieConvinada serieConvinada = new SerieConvinada(nombre.NombreMix);
+                            serieConvinada = new SerieConvinada(nombre.NombreMix);
                             serieConvinada.Añadir(seriesAConvinar);
                             for (int i = 0; i < seriesAConvinar.Length; i++)
                                 series.Elimina(seriesAConvinar[i].Clau());
-                            series.Afegir(serieConvinada.Clau(), serieConvinada);
+                            series.Afegir(serieConvinada);
                             clstSeries.Remove(seriesAConvinar);
                             clstSeries.Add(serieConvinada, DameColor(serieConvinada));
                             clstSeries.SelectItem(serieConvinada);
+                            seriesConvinadas.Afegir(serieConvinada);
                         }
                     }
                     else if (serieViewer.SerieAVisualizar is SerieConvinada)
                     {
                         clstSeries.Remove((object)serieViewer.SerieAVisualizar);
                         series.Elimina(serieViewer.SerieAVisualizar.Clau());
+                        seriesConvinadas.Elimina(serieViewer.SerieAVisualizar.Clau());
                         foreach (Serie serie in (IEnumerable<Serie>)serieViewer.SerieAVisualizar)
                         {
                             if (serie != null)
@@ -231,31 +233,15 @@ namespace SeriesLyOffline_2
             return color;
         }
 
-        private void PonSerieCargada(Serie serie)
+        private void CargarSerieDelXml(Serie serie)
         {
             Action act;
-            bool añadir = true;
             if (serie is SerieConvinada)
             {
-                foreach (Serie serieConvinada in (IEnumerable<Serie>)serie)
-                {
-                    if (!seriesTodas.Existeix(serieConvinada.Clau()))
-                    {
-                        seriesTodas.Afegir(serieConvinada);
-                    }
-
-                }
+            	if(!seriesConvinadas.Existeix(serie.Clau()))
+            		seriesConvinadas.Afegir(serie as SerieConvinada);
             }
-            else if (!seriesTodas.Existeix(serie.Clau()))
-            {
-                seriesTodas.Afegir(serie);
-
-            }
-            else
-            {
-                añadir = false;
-            }
-            if (añadir)
+            if (!series.Existeix(serie.Clau()))
             {
                 series.Afegir(serie);
                 act = () => { clstSeries.Add(serie, DameColor(serie)); };
@@ -279,11 +265,25 @@ namespace SeriesLyOffline_2
                 }
             }
         }
+
+		bool ExisteDirEnUnMix(DirectoryInfo directorio)
+		{
+			bool estaSinUso=true;
+			seriesConvinadas.WhileEach(serieHaMirar => {
+				estaSinUso = !serieHaMirar.Value.CompruebaDireccion(directorio);
+				return estaSinUso;
+			});
+			return !estaSinUso;
+		}
+
         private Serie CargaCarpeta(DirectoryInfo directorio)
         {
             Serie serie = null;
-
-            if (!series.Existeix(directorio.FullName))
+            bool estaSinUso=!series.Existeix(directorio.FullName);
+            if(estaSinUso)
+         		estaSinUso= !ExisteDirEnUnMix(directorio);
+            
+            if (estaSinUso)
                 try
                 {
 
