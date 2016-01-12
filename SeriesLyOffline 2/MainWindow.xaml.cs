@@ -58,12 +58,229 @@ namespace SeriesLyOffline_2
                 this.Close();
             }
         }
+
+
+       
+        #region interface
+        private bool PuedeInicializar()
+        {
+            return new DirectoryInfo(Environment.CurrentDirectory).CanWrite() || MessageBox.Show("No se puede escribir en el directorio, eso puede imperdir guardar y/o actualizar la base de datos, Si quieres puedes usarlo sabiendo que se puede perder el trabajo hecho", "Problema con los permisos de escritura", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes;
+        }
         private void imagen_MouseLeftButtonUp_1(object sender, MouseButtonEventArgs e)
         {
             //abrir ventana configuracion disco logico
             new Configuracion().Show();
         }
+        private void SiPulsaControl(object sender, KeyEventArgs e)
+        {
+            CapituloViewer capitulo;
+            Serie[] seriesAConvinar;
+            PedirNombreSerieWindow nombre;
+            SerieConvinada serieConvinada;
 
+            switch (e.Key)
+            {
+                case Key.S:
+
+
+
+                    if (serieViewer.SerieAVisualizar != null)
+                    {
+
+                        for (int i = 0; i < serieViewer.ColeccionControles.Count; i++)
+                            ((CapituloViewer)serieViewer.ColeccionControles[i]).Visto = true;
+                    }
+
+
+
+                    break;
+                case Key.D:
+
+                    if (serieViewer.SerieAVisualizar != null)
+                    {
+                        for (int i = 0; i < serieViewer.ColeccionControles.Count; i++)
+                            ((CapituloViewer)serieViewer.ColeccionControles[i]).Visto = false;
+                    }
+
+                    break;
+
+                case Key.I:
+                    if (serieViewer.SerieAVisualizar != null)
+                    {
+
+                        for (int i = 0; i < serieViewer.ColeccionControles.Count; i++)
+                        {
+                            capitulo = ((CapituloViewer)serieViewer.ColeccionControles[i]);
+                            capitulo.Visto = !capitulo.Visto;
+                        }
+
+                    }
+
+                    break;
+                case Key.M:
+                    try
+                    {
+                        semaforSeries.WaitOne();
+                        //si solo hay uno si es mixted se desmixta XD
+                        //saca un control para poner nombre
+                        seriesAConvinar = clstSeries.SelectedItems().Casting<Serie>().ToArray();
+                        if (seriesAConvinar.Length > 1)
+                        {
+                            nombre = new PedirNombreSerieWindow();
+                            nombre.PonFocoEscritura();
+                            nombre.ShowDialog();
+
+
+                            if (!String.IsNullOrEmpty(nombre.NombreMix))
+                            {
+                                serieConvinada = new SerieConvinada(nombre.NombreMix);
+                                serieConvinada.Añadir(seriesAConvinar);
+                                for (int i = 0; i < seriesAConvinar.Length; i++)
+                                    seriesList.Elimina(seriesAConvinar[i].Clau());
+                                seriesList.Añadir((Serie)serieConvinada);
+                                clstSeries.Remove(seriesAConvinar);
+                                clstSeries.Add(serieConvinada, DameColor(serieConvinada));
+                                clstSeries.SelectItem(serieConvinada);
+                                seriesConvinadas.Añadir(serieConvinada);
+                            }
+                        }
+                        else if (serieViewer.SerieAVisualizar is SerieConvinada)
+                        {
+                            clstSeries.Remove((object)serieViewer.SerieAVisualizar);
+                            seriesList.Elimina(serieViewer.SerieAVisualizar.Clau());
+                            seriesConvinadas.Elimina(serieViewer.SerieAVisualizar.Clau());
+                            foreach (Serie serie in (IEnumerable<Serie>)serieViewer.SerieAVisualizar)
+                            {
+                                if (serie != null)
+                                {
+                                    clstSeries.Add(serie, DameColor(serie));
+                                    if (!seriesList.Existe(serie.Clau()))
+                                        seriesList.Añadir(serie);
+
+
+                                }
+
+                            }
+
+                        }
+
+
+                        clstSeries.SelectAt(0);
+                    }
+                    finally
+                    {
+                        semaforSeries.Release();
+                    }
+                    break;
+            }
+
+        }
+
+        private void VisualizaSerie(object objSelected, ItemArgs arg)
+        {
+            Serie serieSeleccionada = objSelected as Serie;
+            if (serieSeleccionada != null)
+            {
+                if (serieViewer.SerieAVisualizar != null)
+                {
+                    clstSeries.CambiarColor(serieViewer.SerieAVisualizar, DameColor(serieViewer.SerieAVisualizar));
+                }
+                serieViewer.SerieAVisualizar = serieSeleccionada;
+            }
+        }
+        private Color DameColor(Serie serie)
+        {
+            Color color = Colors.Wheat;
+            switch (serie.ConsultaEstado())
+            {
+                case Serie.Estado.Pendiente: color = Colors.White; break;
+                case Serie.Estado.Siguiendo: color = Colors.Green; break;
+                case Serie.Estado.Acabada: color = Colors.LightPink; break;
+
+            }
+
+            return color;
+        }
+
+        #endregion
+        #region Gestion Series
+        private void SerieNueva(Serie serie)
+        {
+            try
+            {
+                semaforSeries.WaitOne();
+                if (!seriesList.Existe(serie) && !EstaEnUnMix(serie))
+                {
+                    if (serie is SerieConvinada)
+                        seriesConvinadas.Añadir(serie as SerieConvinada);
+                    seriesList.Añadir(serie);
+                    clstSeries.Add(serie, DameColor(serie));
+
+                }
+            }
+            finally
+            {
+                semaforSeries.Release();
+            }
+        }
+
+        private bool EstaEnUnMix(Serie serie)
+        {
+            return EstaEnUnMix(serie.Directorio.FullName);
+        }
+        private bool EstaEnUnMix(string path)
+        {
+            bool estaEnUnMix = false;
+            seriesConvinadas.WhileEach((serieConvinada) =>
+            {
+                estaEnUnMix = !serieConvinada.CompruebaDireccion(path);
+                return !estaEnUnMix;
+            });
+            return estaEnUnMix;
+        }
+        private void CarpetaEncontrada(DiscoLogico disco, IOArgs archivo)
+        {
+            if (!seriesList.ExisteClave(archivo.Path))
+            {
+                SerieNueva(new Serie(new DirectoryInfo(archivo.Path),false));
+            }
+        }
+
+        private void CarpetaPerdida(DiscoLogico disco, IOArgs archivo)
+        {
+            bool acabado = false;
+            try
+            {
+                semaforSeries.WaitOne();
+                if (seriesList.ExisteClave(archivo.Path))
+                {
+                    clstSeries.Remove(seriesList[archivo.Path]);
+                    seriesList.EliminaClave(archivo.Path);
+                }
+                else if (EstaEnUnMix(archivo.Path))
+                {
+                    seriesConvinadas.WhileEach((serieConvinada) =>
+                    {
+                        if (serieConvinada.CompruebaDireccion(archivo.Path))
+                        {
+                            serieConvinada.QuitarNoDisponibles();
+                            if (!serieConvinada.HaySeries)
+                            {
+                                seriesList.Elimina(serieConvinada.Clau());
+                                clstSeries.Remove(serieConvinada);
+                            }
+                            acabado = true;
+                        }
+                        return !acabado;
+                    });
+                }
+            }
+            finally
+            {
+                semaforSeries.Release();
+            }
+        }
+        #endregion
         #region BD
         private void GuardaBD(object sender, EventArgs e)
         {
@@ -145,203 +362,5 @@ namespace SeriesLyOffline_2
             DiscoLogico.BuscaUnidadesNuevasAsync();
         }
         #endregion
-        private void SiPulsaControl(object sender, KeyEventArgs e)
-        {
-            CapituloViewer capitulo;
-            Serie[] seriesAConvinar;
-            PedirNombreSerieWindow nombre;
-            SerieConvinada serieConvinada;
-
-            switch (e.Key)
-            {
-                case Key.S:
-
-
-
-                    if (serieViewer.SerieAVisualizar != null)
-                    {
-
-                        for (int i = 0; i < serieViewer.ColeccionControles.Count; i++)
-                            ((CapituloViewer)serieViewer.ColeccionControles[i]).Visto = true;
-                    }
-
-
-
-                    break;
-                case Key.D:
-
-                    if (serieViewer.SerieAVisualizar != null)
-                    {
-                        for (int i = 0; i < serieViewer.ColeccionControles.Count; i++)
-                            ((CapituloViewer)serieViewer.ColeccionControles[i]).Visto = false;
-                    }
-
-                    break;
-
-                case Key.I:
-                    if (serieViewer.SerieAVisualizar != null)
-                    {
-
-                        for (int i = 0; i < serieViewer.ColeccionControles.Count; i++)
-                        {
-                            capitulo = ((CapituloViewer)serieViewer.ColeccionControles[i]);
-                            capitulo.Visto = !capitulo.Visto;
-                        }
-
-                    }
-
-                    break;
-                case Key.M:
-                    semaforSeries.WaitOne();
-                    //si solo hay uno si es mixted se desmixta XD
-                    //saca un control para poner nombre
-                    seriesAConvinar = clstSeries.SelectedItems().Casting<Serie>().ToArray();
-                    if (seriesAConvinar.Length > 1)
-                    {
-                        nombre = new PedirNombreSerieWindow();
-                        nombre.PonFocoEscritura();
-                        nombre.ShowDialog();
-
-
-                        if (!String.IsNullOrEmpty(nombre.NombreMix))
-                        {
-                            serieConvinada = new SerieConvinada(nombre.NombreMix);
-                            serieConvinada.Añadir(seriesAConvinar);
-                            for (int i = 0; i < seriesAConvinar.Length; i++)
-                                seriesList.Elimina(seriesAConvinar[i].Clau());
-                            seriesList.Añadir((Serie)serieConvinada);
-                            clstSeries.Remove(seriesAConvinar);
-                            clstSeries.Add(serieConvinada, DameColor(serieConvinada));
-                            clstSeries.SelectItem(serieConvinada);
-                            seriesConvinadas.Añadir(serieConvinada);
-                        }
-                    }
-                    else if (serieViewer.SerieAVisualizar is SerieConvinada)
-                    {
-                        clstSeries.Remove((object)serieViewer.SerieAVisualizar);
-                        seriesList.Elimina(serieViewer.SerieAVisualizar.Clau());
-                        seriesConvinadas.Elimina(serieViewer.SerieAVisualizar.Clau());
-                        foreach (Serie serie in (IEnumerable<Serie>)serieViewer.SerieAVisualizar)
-                        {
-                            if (serie != null)
-                            {
-                                clstSeries.Add(serie, DameColor(serie));
-                                if (!seriesList.Existe(serie.Clau()))
-                                    seriesList.Añadir(serie);
-
-
-                            }
-
-                        }
-
-                    }
-
-
-                    clstSeries.SelectAt(0);
-                    semaforSeries.Release();
-                    break;
-            }
-
-        }
-
-        private void VisualizaSerie(object objSelected, ItemArgs arg)
-        {
-            Serie serieSeleccionada = objSelected as Serie;
-            if (serieSeleccionada != null)
-            {
-                if (serieViewer.SerieAVisualizar != null)
-                {
-                    clstSeries.CambiarColor(serieViewer.SerieAVisualizar, DameColor(serieViewer.SerieAVisualizar));
-                }
-                serieViewer.SerieAVisualizar = serieSeleccionada;
-            }
-        }
-
-        private void SerieNueva(Serie serie)
-        {
-            semaforSeries.WaitOne();
-            if (!seriesList.Existe(serie) && !EstaEnUnMix(serie))
-            {
-                if (serie is SerieConvinada)
-                    seriesConvinadas.Añadir(serie as SerieConvinada);
-                seriesList.Añadir(serie);
-                clstSeries.Add(serie, DameColor(serie));
-
-            }
-            semaforSeries.Release();
-        }
-
-        private bool EstaEnUnMix(Serie serie)
-        {
-            return EstaEnUnMix(serie.Directorio.FullName);
-        }
-        private bool EstaEnUnMix(string path)
-        {
-            bool estaEnUnMix = false;
-            seriesConvinadas.WhileEach((serieConvinada) =>
-            {
-                estaEnUnMix = serieConvinada.CompruebaDireccion(path);
-                return !estaEnUnMix;
-            });
-            return estaEnUnMix;
-        }
-        private Color DameColor(Serie serie)
-        {
-            Color color = Colors.Wheat;
-            switch (serie.ConsultaEstado())
-            {
-                case Serie.Estado.Pendiente: color = Colors.White; break;
-                case Serie.Estado.Siguiendo: color = Colors.Green; break;
-                case Serie.Estado.Acabada: color = Colors.LightPink; break;
-
-            }
-
-            return color;
-        }
-
-        private bool PuedeInicializar()
-        {
-            return new DirectoryInfo(Environment.CurrentDirectory).CanWrite() || MessageBox.Show("No se puede escribir en el directorio, eso puede imperdir guardar y/o actualizar la base de datos, Si quieres puedes usarlo sabiendo que se puede perder el trabajo hecho", "Problema con los permisos de escritura", MessageBoxButton.YesNo, MessageBoxImage.Exclamation) == MessageBoxResult.Yes;
-        }
-        private void CarpetaEncontrada(DiscoLogico disco, IOArgs archivo)
-        {
-            if (!seriesList.ExisteClave(archivo.Path))
-            {
-
-                SerieNueva(new Serie(new DirectoryInfo(archivo.Path),false));
-            }
-        }
-
-        private void CarpetaPerdida(DiscoLogico disco, IOArgs archivo)
-        {
-            bool acabado = false;
-            semaforSeries.WaitOne();
-            if (seriesList.ExisteClave(archivo.Path))
-            {
-                clstSeries.Remove(seriesList[archivo.Path]);
-                seriesList.EliminaClave(archivo.Path);
-            }
-            else if (EstaEnUnMix(archivo.Path))
-            {
-                seriesConvinadas.WhileEach((serieConvinada) =>
-                {
-                    if (serieConvinada.CompruebaDireccion(archivo.Path))
-                    {
-                        serieConvinada.QuitarNoDisponibles();
-                        if (!serieConvinada.HaySeries)
-                        {
-                            seriesList.Elimina(serieConvinada.Clau());
-                            clstSeries.Remove(serieConvinada);
-                        }
-                        acabado = true;
-                    }
-                    return !acabado;
-                });
-            }
-
-            semaforSeries.Release();
-        }
-
-
     }
 }

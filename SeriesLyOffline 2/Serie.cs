@@ -56,8 +56,8 @@ namespace SeriesLyOffline2
 
             dirPadre = directorio;
         }
-        public Serie(XmlNode nodoXml, string pathDir)
-            : this(new DirectoryInfo(pathDir))
+        public Serie(XmlNode nodoXml)
+            : this(new DirectoryInfo(nodoXml.FirstChild.InnerText.DescaparCaracteresXML()))
         {
             if (Convert.ToInt32(nodoXml.LastChild.InnerText) != 0)
                 CargarCapitulos();
@@ -317,7 +317,7 @@ namespace SeriesLyOffline2
                     if (nodoSerie.Name == "Serie")
                     {
 
-                        serieActual = new Serie(nodoSerie, nodoSerie.FirstChild.InnerText.DescaparCaracteresXML());/* desescapar caracteres no soportados en el xml por los originales*/
+                        serieActual = new Serie(nodoSerie);/* desescapar caracteres no soportados en el xml por los originales*/
                     }
                     else
                     {
@@ -369,7 +369,7 @@ namespace SeriesLyOffline2
             Nombre = camposId[0];
             for (int i = 1; i < serieXml.ChildNodes.Count; i++)
             {
-                Añadir(new Serie(serieXml.ChildNodes[i], serieXml.ChildNodes[i].FirstChild.InnerText.DescaparCaracteresXML()));
+                Añadir(new Serie(serieXml.ChildNodes[i]));
             }
         }
         public string Nombre
@@ -479,11 +479,12 @@ namespace SeriesLyOffline2
         }
         public override bool CompruebaDireccion(string direccion)
         {
-            return CompruebaDireccion(new DirectoryInfo(direccion));
+            return series.ExisteClave(direccion);
+           
         }
         public override bool CompruebaDireccion(DirectoryInfo direccion)
         {
-        	return series.ExisteClave(direccion.FullName);
+            return CompruebaDireccion(direccion.FullName);
         }
 
         public override void CargarCapitulos()
