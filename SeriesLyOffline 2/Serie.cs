@@ -8,6 +8,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.Drawing;
 using System.Xml;
+using System.Linq;
 
 namespace SeriesLyOffline2
 {
@@ -23,7 +24,7 @@ namespace SeriesLyOffline2
         public static readonly LlistaOrdenada<string, string> diccionarioMultimedia;
         private static LlistaOrdenada<string, string> capitulosVistosGuardados;
 
-        private LlistaOrdenada<IComparable, Capitulo> capitulos;
+        private ListaUnica<Capitulo> capitulos;
         protected DirectoryInfo dirPadre;
         string idMix;
         bool serieCargada;
@@ -45,6 +46,7 @@ namespace SeriesLyOffline2
         public Serie(DirectoryInfo directorio, bool comprovar)
             : this()
         {
+
             if (!directorio.CanRead())
                 throw new Exception("El directorio no se puede leer!!");
 
@@ -62,7 +64,7 @@ namespace SeriesLyOffline2
         }
         protected Serie()
         {
-            this.capitulos = new LlistaOrdenada<IComparable, Capitulo>(); IdMix = "";
+            this.capitulos = new ListaUnica<Capitulo>(); IdMix = "";
             serieCargada = false;
         }
 
@@ -96,9 +98,9 @@ namespace SeriesLyOffline2
         {
             Llista<Capitulo> capitulosHaQuitar = new Llista<Capitulo>();
 
-            foreach (KeyValuePair<IComparable,Capitulo> capitulo in capitulos)
-                if (!capitulo.Value.CampruebaDisponivilidad())
-                    capitulosHaQuitar.Afegir(capitulo.Value);
+            foreach (Capitulo capitulo in capitulos)
+                if (!capitulo.CampruebaDisponivilidad())
+                    capitulosHaQuitar.Afegir(capitulo);
 
             for (int i = 0; i < capitulosHaQuitar.Count; i++)
                 capitulos.Elimina(capitulosHaQuitar[i].Clau());
@@ -118,7 +120,7 @@ namespace SeriesLyOffline2
             bool acabado = false;
             capitulos.WhileEach((capitulo) =>
             {
-                if (capitulo.Value.Visto)
+                if (capitulo.Visto)
                     numeroDeVistos++;
                 else if (numeroDeVistos > 0)
                     acabado = true;
@@ -139,11 +141,11 @@ namespace SeriesLyOffline2
             Capitulo capitulo = null;
             int numVistos = 0;
             archivosMultimedia = Serie.ArchivosMultimedia(dirPadre);
-            capitulos.Buida();
+            capitulos.Vaciar();
             for (int i = 0; i < archivosMultimedia.Length; i++)
             {
                 capitulo = new Capitulo(archivosMultimedia[i]);
-                capitulos.Afegir(capitulo.Clau(), capitulo);
+                capitulos.Añadir(capitulo);
                 if (capitulosVistosGuardados.Existeix(capitulo.Key))
                 {
                     numVistos++;
@@ -162,9 +164,9 @@ namespace SeriesLyOffline2
         protected virtual IEnumerable<string> GuardarVistos()
         {
             Llista<string> vistos = new Llista<string>();
-            foreach (KeyValuePair<IComparable,Capitulo> capitulo in capitulos)
-                if (capitulo.Value.Visto)
-                    vistos.Afegir(capitulo.Value.LineaGuardado);
+            foreach (Capitulo capitulo in capitulos)
+                if (capitulo.Visto)
+                    vistos.Afegir(capitulo.LineaGuardado);
             return vistos;
         }
 
@@ -177,7 +179,7 @@ namespace SeriesLyOffline2
 
         private Capitulo[] Vistos()
         {
-            return capitulos.ValuesToArray().Filtra((capitulo) => { return capitulo.Visto; }).ToTaula();
+            return capitulos.Filtra((capitulo) => { return capitulo.Visto; }).ToTaula();
         }
         public override string ToString()
         {
@@ -192,11 +194,13 @@ namespace SeriesLyOffline2
         }
         public IEnumerator<Capitulo> GetEnumerator()
         {
+            if (!serieCargada)
+                CargarCapitulos();
             return GetCapitulos();
         }
         public virtual IEnumerator<Capitulo> GetCapitulos()
         {
-            return capitulos.ValuesToArray().ObtieneEnumerador();
+            return capitulos.ObtieneEnumerador();
         }
         IEnumerator IEnumerable.GetEnumerator()
         {
@@ -213,6 +217,7 @@ namespace SeriesLyOffline2
             {
                 if (dir.CanRead())//me interesa poder leer
                     files = dir.GetFiles(extensionesMultimedia);
+
             }
             catch (Exception ex)
             {
@@ -332,7 +337,7 @@ namespace SeriesLyOffline2
     public class SerieConvinada : Serie, IEnumerable<Serie>, IEnumerable<Capitulo>
     {
         string nombre;
-        LlistaOrdenada<IComparable, Serie> series;
+        ListaUnica<Serie> series;
         public SerieConvinada(string nombre)
             : this()
         {
@@ -341,7 +346,7 @@ namespace SeriesLyOffline2
         public SerieConvinada()
             : base()
         {
-            this.series = new LlistaOrdenada<IComparable, Serie>();
+            this.series = new ListaUnica<Serie>();
             IdMix = "IdMix:" + MiRandom.Next();
             Nombre = "";
         }
@@ -406,16 +411,16 @@ namespace SeriesLyOffline2
         public override bool CompruebaDisponivilidad()
         {
             bool valido = true;
-            series.WhileEach((serie) => { valido = serie.Value.CompruebaDisponivilidad(); return valido; });
+            series.WhileEach((serie) => { valido = serie.CompruebaDisponivilidad(); return valido; });
             return valido;
         }
         public override void QuitarNoDisponibles()
         {
             //quito las series no disponibles
-            Serie[] seriesDisponibles = series.Filtra((serie) => { return serie.Value.CompruebaDisponivilidad(); }).ValuesToArray();
-            series.Buida();
+            Serie[] seriesDisponibles = series.Filtra((serie) => { return serie.CompruebaDisponivilidad(); }).ToArray();
+            series.Vaciar();
             for(int i = 0; i < seriesDisponibles.Length; i++) { 
-                series.Afegir(seriesDisponibles[i].Clau(), seriesDisponibles[i]);
+                series.Añadir(seriesDisponibles[i]);
             //quito los capitulos no disponibles
             seriesDisponibles[i].QuitarNoDisponibles();
             }
@@ -429,7 +434,7 @@ namespace SeriesLyOffline2
             series.WhileEach((serie) =>
             {
                 numSeries++;
-                estadoSerie = serie.Value.ConsultaEstado();
+                estadoSerie = serie.ConsultaEstado();
                 switch (estadoSerie)
                 {
                     case Estado.Acabada:numeroDeVistas++; break;
@@ -456,7 +461,7 @@ namespace SeriesLyOffline2
             else
             {
                 serie.IdMix = this.IdMix;
-                series.Afegir(serie.Clau(), serie);
+                series.Añadir( serie);
             }
         }
         public void Añadir(IEnumerable<Serie> series)
@@ -466,7 +471,7 @@ namespace SeriesLyOffline2
         }
         public void Quitar(Serie serie)
         {
-            if (series.Existeix(serie.Clau()))
+            if (series.Existe(serie))
             {
                 serie.IdMix = "";
                 series.Elimina(serie.Clau());
@@ -478,13 +483,13 @@ namespace SeriesLyOffline2
         }
         public override bool CompruebaDireccion(DirectoryInfo direccion)
         {
-        	return series.Existeix(direccion.FullName);
+        	return series.ExisteClave(direccion.FullName);
         }
 
         public override void CargarCapitulos()
         {
-            foreach (KeyValuePair<IComparable, Serie> serie in series)
-                serie.Value.CargarCapitulos();
+            foreach (Serie serie in series)
+                serie.CargarCapitulos();
         }
 
         protected override IEnumerable<string> GuardarVistos()
@@ -498,12 +503,12 @@ namespace SeriesLyOffline2
 
         IEnumerator<Serie> IEnumerable<Serie>.GetEnumerator()
         {
-            return series.ValuesToArray().ObtieneEnumerador();
+            return series.ObtieneEnumerador();
         }
         public override IEnumerator<Capitulo> GetCapitulos()
         {
-            foreach (KeyValuePair<IComparable, Serie> serie in series)
-                foreach (Capitulo capitulo in serie.Value)
+            foreach (Serie serie in series)
+                foreach (Capitulo capitulo in serie)
                     yield return capitulo;
         }
         public override IComparable Clau()

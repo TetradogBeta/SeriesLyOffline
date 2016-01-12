@@ -58,6 +58,8 @@ namespace SeriesLyOffline2
             set { capitulo = value;
                 Visto = capitulo.Visto;
                 txtNombreSerie.Text = capitulo.Nombre;
+                if (txtNombreSerie.Text == "")
+                    txtNombreSerie.Text = "archivo con caracteres no soportados";
             }
         }
 
